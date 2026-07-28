@@ -497,12 +497,6 @@
   .empty-state h2 { font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--ink); }
   .empty-state p { font-size: 14px; margin-bottom: 1.5rem; }
 
-  /* ── 進度條 ── */
-  .progress-bar { margin: 1.5rem 0; }
-  .progress-label { font-size: 13px; color: var(--ink-light); margin-bottom: 6px; display: flex; justify-content: space-between; }
-  .progress-track { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--success); border-radius: 4px; transition: width 0.3s; }
-
   /* ── 編輯模式 ── */
   .edit-badge {
     display: none;
@@ -759,12 +753,9 @@
     .logo-icon { width: 26px; height: 26px; font-size: 13px; }
     .btn-add { padding: 6px 11px; font-size: 12px; }
 
-    /* 標題文字 4+4 字上下重疊排列 */
+    /* 標題文字 4+4 字上下重疊排列（實際換行由 JS 控制） */
     #site-title {
       display: block;
-      width: 4.1em;
-      white-space: normal;
-      word-break: break-all;
       line-height: 1.2;
       font-size: 0.82rem;
       text-align: left;
@@ -1268,31 +1259,6 @@
   .step-block.drag-over { outline: 2px dashed var(--accent); border-radius: 10px; background: var(--accent-pale); }
   .step-block.dragging { opacity: 0.4; }
 
-  /* ── 進度打勾 ── */
-  .step-check {
-    position: absolute;
-    top: -4px; right: -4px;
-    width: 18px; height: 18px;
-    border-radius: 50%;
-    background: white;
-    border: 2px solid var(--border-strong);
-    cursor: pointer;
-    display: none;
-    align-items: center; justify-content: center;
-    font-size: 10px;
-    transition: all 0.15s;
-    color: transparent;
-    z-index: 2;
-  }
-  .step-check:hover { border-color: var(--success); }
-  .step-block.done .step-check { background: var(--success); border-color: var(--success); color: white; }
-  .step-block.done .step-title { text-decoration: line-through; opacity: 0.6; }
-  .step-block.done .step-body { opacity: 0.5; }
-  .progress-bar-wrap { margin: 0 0 1.5rem; }
-  .progress-bar-label { font-size: 12px; color: var(--ink-light); display: flex; justify-content: space-between; margin-bottom: 5px; }
-  .progress-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--success); border-radius: 3px; transition: width 0.4s ease; }
-
   /* ── FAQ 新版 ── */
   .faq-question-row {
     padding: 12px 16px;
@@ -1388,7 +1354,7 @@
     .add-step-btn, .step-media-controls, .btn-del-step, .btn-del-faq,
     .btn-remove-section, .btn-add-faq, .table-controls, .btn-restore-section,
     .page-actions, nav, .toast, .modal-bg, .video-modal-bg,
-    .cat-icon-picker, .step-check, .site-footer { display: none !important; }
+    .cat-icon-picker, .site-footer { display: none !important; }
     body { background: white; }
     main { max-width: 100%; padding: 0; }
     .guide-page { display: block !important; }
@@ -1914,6 +1880,7 @@
 
     showSection('home');
     showSaveStatus('');
+    setTimeout(updateTitleLayout, 120);
 
     // 監聽頁面關閉前自動儲存
     window.addEventListener('beforeunload', saveToStorage);
@@ -2224,19 +2191,7 @@
 
       <!-- 工具列 -->
       <div class="toolbar-row">
-        <button class="btn-toolbar always-show" onclick="printGuide('${guide.id}')" title="列印此教學">🖨️ 列印</button>
-        <button class="btn-toolbar always-show" onclick="exportPDF('${guide.id}')" title="儲存為 PDF">📥 存成 PDF</button>
         <button class="btn-toolbar" onclick="duplicateGuide('${guide.id}')" title="複製此教學">📋 複製教學</button>
-        <button class="btn-toolbar always-show" id="progress-toggle-${guide.id}" onclick="toggleProgressMode('${guide.id}')" title="進度追蹤模式">✅ 進度追蹤</button>
-      </div>
-
-      <!-- 進度條（進度追蹤模式下顯示）-->
-      <div class="progress-bar-wrap" id="progress-wrap-${guide.id}" style="display:none">
-        <div class="progress-bar-label">
-          <span>辦理進度</span>
-          <span id="progress-text-${guide.id}">0 / ${guide.steps.length} 步驟完成</span>
-        </div>
-        <div class="progress-track"><div class="progress-fill" id="progress-fill-${guide.id}" style="width:0%"></div></div>
       </div>
 
       <div class="info-card notice">
@@ -2432,7 +2387,6 @@
         ondragend="stepDragEnd(event)">
         <div class="step-number step-num-clickable" onclick="openStepIconModal('${step.id}')" title="點擊更換圖示" style="position:relative">
           ${numDisplay}
-          <span class="step-check" onclick="event.stopPropagation();toggleStepDone(this.closest('.step-block'),'${guideId}')" title="標記完成">✓</span>
         </div>
         <div class="step-content">
           <div class="step-title-row">
@@ -3078,6 +3032,28 @@
   }
 
 
+  // ── 手機標題 4+4 排版 ──
+  function updateTitleLayout() {
+    const el = document.getElementById('site-title');
+    if (!el) return;
+    // 若目前正在編輯中，不要動它（避免游標跳動）
+    if (el.contentEditable === 'true') return;
+    // 取得純文字（去除先前插入的 <br>）
+    const fullText = (el.dataset.fullText || el.textContent).replace(/\n/g, '').trim();
+    el.dataset.fullText = fullText;
+    if (window.innerWidth <= 768 && fullText.length > 4) {
+      el.innerHTML = fullText.slice(0, 4) + '<br>' + fullText.slice(4);
+    } else {
+      el.textContent = fullText;
+    }
+  }
+
+  let _titleResizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(_titleResizeTimer);
+    _titleResizeTimer = setTimeout(updateTitleLayout, 150);
+  });
+
   // ── 時鐘 ──
   function updateClock() {
     const now = new Date();
@@ -3109,7 +3085,13 @@
     const logoIcon = document.getElementById('logo-icon');
     const siteTitle = document.getElementById('site-title');
     if (logoIcon) { logoIcon.style.cursor = 'pointer'; logoIcon.title = '點擊換 Logo 圖示'; logoIcon.onclick = (e) => { e.stopPropagation(); pickLogoIcon(); }; }
-    if (siteTitle) { siteTitle.contentEditable = 'true'; siteTitle.style.borderBottom = '2px dashed rgba(255,255,255,0.5)'; siteTitle.title = '雙擊編輯網站名稱'; }
+    if (siteTitle) {
+      // 編輯前先還原成純文字（避免 <br> 混入編輯內容）
+      siteTitle.textContent = siteTitle.dataset.fullText || siteTitle.textContent;
+      siteTitle.contentEditable = 'true';
+      siteTitle.style.borderBottom = '2px dashed rgba(255,255,255,0.5)';
+      siteTitle.title = '雙擊編輯網站名稱';
+    }
     // sidebar titles
     document.querySelectorAll('.sidebar-cat-title').forEach(el => {
       el.style.outline = '1px dashed var(--gold)';
@@ -3127,7 +3109,12 @@
       if (el) { el.contentEditable = 'false'; el.style.borderBottom = ''; }
     });
     const siteTitle = document.getElementById('site-title');
-    if (siteTitle) { siteTitle.contentEditable = 'false'; siteTitle.style.borderBottom = ''; }
+    if (siteTitle) {
+      siteTitle.contentEditable = 'false';
+      siteTitle.style.borderBottom = '';
+      siteTitle.dataset.fullText = siteTitle.textContent.trim();
+      updateTitleLayout();
+    }
     const logoIcon = document.getElementById('logo-icon');
     if (logoIcon) { logoIcon.style.cursor = ''; logoIcon.title = ''; logoIcon.onclick = null; }
     document.querySelectorAll('.sidebar-cat-title').forEach(el => {
@@ -3532,7 +3519,12 @@
     guides = data.guides;
     catIcons = data.catIcons || catIcons;
     const setEl = (id, val) => { if (!val) return; setTimeout(() => { const el = document.getElementById(id); if (el) el.textContent = val; }, 50); };
-    setEl('site-title', data.siteTitle);
+    if (data.siteTitle) {
+      setTimeout(() => {
+        const el = document.getElementById('site-title');
+        if (el) { el.dataset.fullText = data.siteTitle; updateTitleLayout(); }
+      }, 50);
+    }
     setEl('logo-icon', data.logoIcon);
     setEl('home-category', data.homeCategory);
     setEl('home-title-text', data.homeTitleText);
@@ -3657,45 +3649,6 @@
   }
 
   // ══════════════════════════════════════════════════
-  // ── 4. 進度追蹤 ──
-  // ══════════════════════════════════════════════════
-  let _progressMode = {};
-
-  function toggleProgressMode(guideId) {
-    _progressMode[guideId] = !_progressMode[guideId];
-    const wrap = document.getElementById('progress-wrap-' + guideId);
-    const btn = document.getElementById('progress-toggle-' + guideId);
-    const page = document.getElementById(guideId);
-    if (_progressMode[guideId]) {
-      wrap.style.display = 'block';
-      btn.classList.add('active');
-      page.querySelectorAll('.step-check').forEach(c => c.style.display = 'flex');
-      updateProgress(guideId);
-    } else {
-      wrap.style.display = 'none';
-      btn.classList.remove('active');
-      page.querySelectorAll('.step-check').forEach(c => c.style.display = 'none');
-      page.querySelectorAll('.step-block').forEach(b => b.classList.remove('done'));
-    }
-  }
-
-  function toggleStepDone(block, guideId) {
-    if (!_progressMode[guideId]) return;
-    block.classList.toggle('done');
-    updateProgress(guideId);
-  }
-
-  function updateProgress(guideId) {
-    const page = document.getElementById(guideId);
-    if (!page) return;
-    const all = page.querySelectorAll('.step-block').length;
-    const done = page.querySelectorAll('.step-block.done').length;
-    const fill = document.getElementById('progress-fill-' + guideId);
-    const text = document.getElementById('progress-text-' + guideId);
-    if (fill) fill.style.width = (all ? Math.round(done / all * 100) : 0) + '%';
-    if (text) text.textContent = done + ' / ' + all + ' 步驟完成';
-  }
-
   // ══════════════════════════════════════════════════
   // ── 5. 複製教學 ──
   // ══════════════════════════════════════════════════
@@ -3715,27 +3668,6 @@
     showSection('guide', newId);
     autoSave();
     showToast('📋 已複製為「' + newGuide.title + '」');
-  }
-
-  // ══════════════════════════════════════════════════
-  // ── 6. 列印 & PDF ──
-  // ══════════════════════════════════════════════════
-  function printGuide(guideId) {
-    // 確保要列印的頁面是 active
-    document.querySelectorAll('.guide-page').forEach(p => p.style.display = 'none');
-    const page = document.getElementById(guideId);
-    if (page) page.style.display = 'block';
-    window.print();
-    // restore
-    setTimeout(() => {
-      document.querySelectorAll('.guide-page').forEach(p => { p.style.display = ''; });
-      showSection('guide', guideId);
-    }, 500);
-  }
-
-  function exportPDF(guideId) {
-    showToast('🖨️ 正在準備 PDF，請在列印對話框選擇「儲存為 PDF」');
-    setTimeout(() => printGuide(guideId), 400);
   }
 
   // ── Toast ──
