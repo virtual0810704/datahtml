@@ -70,6 +70,12 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 16px;
   }
+  .header-clock {
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+  }
   nav { display: flex; gap: 2rem; }
   nav a {
     color: rgba(255,255,255,0.7);
@@ -749,9 +755,27 @@
   @media (max-width: 768px) {
     header { padding: 0 1rem; height: 52px; }
     nav { display: none; }
-    .logo { font-size: 0.95rem; }
+    .logo { font-size: 0.95rem; align-items: center; }
     .logo-icon { width: 26px; height: 26px; font-size: 13px; }
     .btn-add { padding: 6px 11px; font-size: 12px; }
+
+    /* 標題文字 4+4 字上下重疊排列 */
+    #site-title {
+      display: block;
+      width: 4.1em;
+      white-space: normal;
+      word-break: break-all;
+      line-height: 1.2;
+      font-size: 0.82rem;
+      text-align: left;
+    }
+
+    /* 時鐘：單行顯示，字體縮小 */
+    .header-clock {
+      font-size: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
 
     /* 主佈局：桌機 aside 隱藏，改用手機 bar */
     .app { flex-direction: column; }
@@ -1111,31 +1135,11 @@
 
   /* 唯讀標記 */
   .view-only-badge {
-    display: none;
-    align-items: center;
-    gap: 6px;
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.2);
-    color: rgba(255,255,255,0.85);
-    font-size: 12px;
-    padding: 4px 12px;
-    border-radius: 20px;
-    letter-spacing: 0.04em;
+    display: none !important;
   }
 
   /* ── 提示區塊隱藏按鈕 ── */
-  .home-tip-card { position: relative; }
-  .btn-hide-tip {
-    position: absolute;
-    top: 8px; right: 8px;
-    background: none; border: none;
-    color: var(--ink-light); font-size: 14px;
-    cursor: pointer; padding: 2px 6px; border-radius: 4px;
-    transition: all 0.15s;
-  }
-  .btn-hide-tip:hover { color: var(--accent); background: var(--accent-pale); }
-  .tip-icon { transition: transform 0.15s; }
-  .tip-icon:hover { transform: scale(1.2); }
+
 
   /* ── 步驟數字可點擊換 icon ── */
   .step-num-clickable {
@@ -1576,14 +1580,7 @@
           <button class="btn-save" id="home-save-btn" style="display:none" onclick="saveHomeEdit()">✅ 完成編輯</button>
         </div>
       </div>
-      <div class="info-card tip home-tip-card" id="home-tip-card">
-        <div class="card-icon tip-icon" id="tip-icon" onclick="pickTipIcon()" title="點擊換圖示" style="cursor:pointer">💡</div>
-        <div class="card-body">
-          <div class="card-title" id="tip-title" contenteditable="false" title="雙擊編輯標題" ondblclick="enableHomeEdit(this)">如何使用此平台</div>
-          <p id="tip-body" contenteditable="false" title="雙擊編輯內文" ondblclick="enableHomeEdit(this)">點擊右上角「新增教學」來建立新的教學頁面，或從左側選單選擇現有教學。每個教學頁面支援圖文並茂的步驟說明與可編輯表格。</p>
-        </div>
-        <button class="btn-hide-tip" onclick="document.getElementById('home-tip-card').style.display='none';showToast('已隱藏提示區塊')" title="隱藏此區塊">✕</button>
-      </div>
+
       <div id="guide-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-top:2rem;"></div>
       <div id="empty-home" class="empty-state" style="display:none;">
         <div style="font-size:3rem;margin-bottom:1rem;">📂</div>
@@ -3754,7 +3751,7 @@
 
 <!-- 免責聲明 -->
 <div class="disclaimer-bar" id="disclaimer-bar" contenteditable="false" title="雙擊編輯免責聲明" ondblclick="enableDisclaimerEdit(this)">
-  ⚠️ 本網站內容僅供參考，實際規定與流程請以各機關最新公告為準，如有疑問請洽詢承辦機關。
+  ⚠️ 本網站內容僅供參考，實際規定與流程請以各機關最新公告為準，<br>如有疑問請洽詢承辦機關。
 </div>
 
 <!-- Footer -->
