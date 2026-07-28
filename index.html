@@ -2225,8 +2225,11 @@
       <button class="btn-restore-section" id="add-table-btn-${guide.id}" style="display:none" onclick="restoreTableSection('${guide.id}')">📄 ＋ 新增文件清單區塊</button>
 
       <!-- 相關連結 / 聯絡資訊 -->
-      <div class="info-links-card" id="links-section-${guide.id}">
-        <div class="info-links-title">🔗 相關連結與洽詢資訊</div>
+      <div class="info-links-card" id="links-section-${guide.id}" style="${guide.linksHidden ? 'display:none' : ''}">
+        <div class="section-header-row">
+          <div class="info-links-title">🔗 相關連結與洽詢資訊</div>
+          <button class="btn-remove-section" onclick="removeSectionWithRestore('links-section-${guide.id}','add-links-btn-${guide.id}','${guide.id}','linksHidden')" title="隱藏此區塊">✕ 隱藏區塊</button>
+        </div>
         <div id="links-list-${guide.id}"></div>
         <button class="btn-add-link" onclick="addLinkItem('${guide.id}')">＋ 新增連結</button>
         <div style="height:8px"></div>
@@ -2240,6 +2243,8 @@
           <a href="#" onclick="event.preventDefault();openMapForGuide('${guide.id}')" style="font-size:12px;color:var(--blue)">在地圖上查看 →</a>
         </div>
       </div>
+      <!-- 相關連結區塊隱藏後的還原按鈕 -->
+      <button class="btn-restore-section" id="add-links-btn-${guide.id}" style="display:${guide.linksHidden ? 'flex' : 'none'}" onclick="restoreLinksSection('${guide.id}')">🔗 ＋ 顯示相關連結與洽詢資訊</button>
 
       <!-- 常見問題 -->
       <div class="faq-section" id="faq-section-${guide.id}">
@@ -2922,8 +2927,8 @@
   }
 
   // ── 移除區塊（移除後顯示新增按鈕）──
-  function removeSectionWithRestore(sectionId, restoreBtnId) {
-    if (!confirm('確定要移除此區塊嗎？')) return;
+  function removeSectionWithRestore(sectionId, restoreBtnId, guideId, flagKey) {
+    if (!confirm('確定要隱藏此區塊嗎？')) return;
     const el = document.getElementById(sectionId);
     if (el) {
       el.style.transition = 'opacity 0.2s, transform 0.2s';
@@ -2935,7 +2940,12 @@
         const restoreBtn = document.getElementById(restoreBtnId);
         if (restoreBtn) restoreBtn.style.display = 'flex';
       }, 200);
-      showToast('🗑️ 已移除區塊，可點按鈕重新加入');
+      // 記住隱藏狀態（供重新整理後維持）
+      if (guideId && flagKey) {
+        const guide = guides.find(g => g.id === guideId);
+        if (guide) { guide[flagKey] = true; autoSave(); }
+      }
+      showToast('🙈 已隱藏區塊，可點按鈕重新顯示');
     }
   }
 
@@ -2973,6 +2983,26 @@
     }
     if (btn) btn.style.display = 'none';
     showToast('✅ 已重新加入常見問題區塊');
+  }
+
+  // ── 還原相關連結 / 洽詢資訊區塊 ──
+  function restoreLinksSection(guideId) {
+    const section = document.getElementById('links-section-' + guideId);
+    const btn = document.getElementById('add-links-btn-' + guideId);
+    if (section) {
+      section.style.display = '';
+      section.style.opacity = '0';
+      section.style.transform = 'translateY(6px)';
+      section.style.transition = 'opacity 0.25s, transform 0.25s';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        section.style.opacity = '1';
+        section.style.transform = 'translateY(0)';
+      }));
+    }
+    if (btn) btn.style.display = 'none';
+    const guide = guides.find(g => g.id === guideId);
+    if (guide) { guide.linksHidden = false; autoSave(); }
+    showToast('✅ 已重新顯示相關連結與洽詢資訊');
   }
 
   // ── 舊版 removeSection（保留相容）──
