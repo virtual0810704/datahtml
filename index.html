@@ -1629,6 +1629,9 @@
 <div class="modal-bg" id="content-manager-modal">
   <div class="modal" style="max-width:480px">
     <h3>⚙️ 內容管理</h3>
+    <div style="font-size:11px;color:var(--ink-light);background:var(--paper-warm);border-radius:6px;padding:5px 10px;margin-bottom:1rem;display:inline-block">
+      程式版本：<b id="app-version">2025.07.28-fix2</b>（用來確認網站是否已更新到最新版）
+    </div>
 
     <div class="cm-section">
       <div class="cm-section-title">📤 發布內容到網站</div>
@@ -1852,6 +1855,7 @@
 
   // ── 初始化 ──
   window.onload = async () => {
+    console.log('%c資料申請教學平台 版本：2025.07.28-fix2', 'color:#c8502a;font-weight:bold;font-size:14px');
     // 預設分類圖示
     catIcons = {
       '金融信用': '💳', '勞動保險': '🛡️', '稅務': '📊',
@@ -3608,8 +3612,22 @@
   let _saveTimer = null;
   function autoSave() {
     clearTimeout(_saveTimer);
-    _saveTimer = setTimeout(saveToStorage, 800);
+    _saveTimer = setTimeout(() => {
+      // 若目前正在編輯中，先把畫面內容同步回資料，避免忘記按「儲存」而遺漏
+      if (document.body.classList.contains('editing') && currentGuide) {
+        syncGuideFromDOM(currentGuide);
+      }
+      saveToStorage();
+    }, 800);
   }
+
+  // 關鍵修正：打字編輯文字內容時（非結構性操作）也要觸發自動儲存
+  // 否則單純修改文字而不做「新增列/刪除步驟」等操作時，畫面內容永遠不會被存下來
+  document.addEventListener('input', (e) => {
+    if (!document.body.classList.contains('editing')) return;
+    if (!e.target || !e.target.isContentEditable) return;
+    autoSave();
+  });
 
   // ── content.json 機制 ──
 
