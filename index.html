@@ -2197,8 +2197,8 @@
       <div class="info-card notice">
         <div class="card-icon">⚠️</div>
         <div class="card-body">
-          <div class="card-title notice-title" contenteditable="false">注意事項</div>
-          <p class="notice-body" contenteditable="false">辦理前請確認攜帶所有必要文件，以免往返奔波。如有疑問請洽詢相關機關。</p>
+          <div class="card-title notice-title" contenteditable="false">${(guide.notice && guide.notice.title) || '注意事項'}</div>
+          <p class="notice-body" contenteditable="false">${(guide.notice && guide.notice.body) || '辦理前請確認攜帶所有必要文件，以免往返奔波。如有疑問請洽詢相關機關。'}</p>
         </div>
       </div>
 
@@ -2210,7 +2210,7 @@
       <div class="table-section" id="table-section-${guide.id}">
         <div class="section-header-row">
           <div class="table-section-title">
-            <span class="section-title-text" contenteditable="false" ondblclick="this.contentEditable='true';this.focus()" onblur="this.contentEditable='false'">📄 所需文件清單</span>
+            <span class="section-title-text" contenteditable="false" ondblclick="this.contentEditable='true';this.focus()" onblur="this.contentEditable='false'">${guide.tableSectionTitle || '📄 所需文件清單'}</span>
             <span class="tag tag-required">必備</span>
           </div>
           <button class="btn-remove-section" onclick="removeSectionWithRestore('table-section-${guide.id}', 'add-table-btn-${guide.id}')" title="移除文件清單區塊">✕ 移除區塊</button>
@@ -2249,50 +2249,43 @@
       <!-- 常見問題 -->
       <div class="faq-section" id="faq-section-${guide.id}">
         <div class="section-header-row">
-          <h2 class="faq-section-title" contenteditable="false" ondblclick="this.contentEditable='true';this.focus()" onblur="this.contentEditable='false'" style="font-family:'Noto Serif TC',serif;font-size:1.1rem;color:var(--ink);outline:none">❓ 常見問題</h2>
+          <h2 class="faq-section-title" contenteditable="false" ondblclick="this.contentEditable='true';this.focus()" onblur="this.contentEditable='false'" style="font-family:'Noto Serif TC',serif;font-size:1.1rem;color:var(--ink);outline:none">${guide.faqSectionTitle || '❓ 常見問題'}</h2>
           <div style="display:flex;gap:6px;align-items:center">
             <button class="btn-add-faq" onclick="addFaqItem('${guide.id}')">＋ 新增問題</button>
             <button class="btn-remove-section" onclick="removeSectionWithRestore('faq-section-${guide.id}','add-faq-btn-${guide.id}')" title="移除常見問題區塊">✕ 移除區塊</button>
           </div>
         </div>
-        <div class="faq-list" id="faq-list-${guide.id}">
-          <div class="faq-item" data-guide="${guide.id}">
-            <div class="faq-question-row" onclick="toggleFaq(this.closest('\.faq-item'))">
-              <div class="faq-question-text" contenteditable="false">可以委託他人代辦嗎？</div>
-              <div class="faq-controls">
-                <span class="faq-toggle-btn">＋</span>
-                <button class="btn-del-faq" onclick="event.stopPropagation();this.closest('.faq-item').remove();showToast('🗑️ 已刪除問題')" title="刪除此問題">✕</button>
-              </div>
-            </div>
-            <div class="faq-answer" contenteditable="false">可以，但需提供委託人身分證影本及委託書，以及受委託人的身分證正本。</div>
-          </div>
-          <div class="faq-item" data-guide="${guide.id}">
-            <div class="faq-question-row" onclick="toggleFaq(this.closest('\.faq-item'))">
-              <div class="faq-question-text" contenteditable="false">申請多久可以取件？</div>
-              <div class="faq-controls">
-                <span class="faq-toggle-btn">＋</span>
-                <button class="btn-del-faq" onclick="event.stopPropagation();this.closest('.faq-item').remove();showToast('🗑️ 已刪除問題')" title="刪除此問題">✕</button>
-              </div>
-            </div>
-            <div class="faq-answer" contenteditable="false">一般現場申請當場即可取件。如有特殊情況需要審核，將另行通知。</div>
-          </div>
-          <div class="faq-item" data-guide="${guide.id}">
-            <div class="faq-question-row" onclick="toggleFaq(this.closest('\.faq-item'))">
-              <div class="faq-question-text" contenteditable="false">是否可以網路申請？</div>
-              <div class="faq-controls">
-                <span class="faq-toggle-btn">＋</span>
-                <button class="btn-del-faq" onclick="event.stopPropagation();this.closest('.faq-item').remove();showToast('🗑️ 已刪除問題')" title="刪除此問題">✕</button>
-              </div>
-            </div>
-            <div class="faq-answer" contenteditable="false">部分資料可透過政府服務網路平台申請，請至「內政部戶政司全球資訊網」查詢線上服務項目。</div>
-          </div>
-        </div>
+        <div class="faq-list" id="faq-list-${guide.id}">${buildFaqListHtml(guide)}</div>
       </div>
       <!-- 常見問題移除後的新增按鈕 -->
       <button class="btn-restore-section" id="add-faq-btn-${guide.id}" style="display:none" onclick="restoreFaqSection('${guide.id}')">❓ ＋ 新增常見問題區塊</button>
     `;
     container.appendChild(div);
     renderLinksSection(guide);
+  }
+
+  // 取得預設 FAQ（若 guide.faq 未設定時使用）
+  function getDefaultFaq() {
+    return [
+      { q: '可以委託他人代辦嗎？', a: '可以，但需提供委託人身分證影本及委託書，以及受委託人的身分證正本。' },
+      { q: '申請多久可以取件？', a: '一般現場申請當場即可取件。如有特殊情況需要審核，將另行通知。' },
+      { q: '是否可以網路申請？', a: '部分資料可透過政府服務網路平台申請，請至「內政部戶政司全球資訊網」查詢線上服務項目。' }
+    ];
+  }
+
+  function buildFaqListHtml(guide) {
+    const faq = (guide.faq && guide.faq.length > 0) ? guide.faq : getDefaultFaq();
+    return faq.map(item => `
+          <div class="faq-item" data-guide="${guide.id}">
+            <div class="faq-question-row" onclick="toggleFaq(this.closest('.faq-item'))">
+              <div class="faq-question-text" contenteditable="false">${item.q}</div>
+              <div class="faq-controls">
+                <span class="faq-toggle-btn">＋</span>
+                <button class="btn-del-faq" onclick="event.stopPropagation();this.closest('.faq-item').remove();showToast('🗑️ 已刪除問題')" title="刪除此問題">✕</button>
+              </div>
+            </div>
+            <div class="faq-answer" contenteditable="false">${item.a}</div>
+          </div>`).join('');
   }
 
   // ══════════════════════════════════════════════════
@@ -2831,12 +2824,92 @@
     document.body.classList.remove('editing');
     enableEditing(guideId, false);
     saveContactInfo(guideId);
+    syncGuideFromDOM(guideId);
     // 停用步驟拖曳
     document.querySelectorAll(`#${guideId} .step-block`).forEach(b => b.draggable = false);
     // 停止並清除歷史紀錄
     stopHistory(guideId);
     autoSave();
     showToast('✅ 已儲存所有修改');
+  }
+
+  // ══════════════════════════════════════════════════
+  // ── 將畫面上編輯過的內容同步回資料模型 ──
+  // （步驟文字、表格、FAQ、注意事項等 contenteditable 內容
+  //   平常只存在 DOM 中，離開編輯模式時才寫回 guide 物件）
+  // ══════════════════════════════════════════════════
+  function syncGuideFromDOM(guideId) {
+    const guide = guides.find(g => g.id === guideId);
+    const page = document.getElementById(guideId);
+    if (!guide || !page) return;
+
+    // 1) 步驟標題與內文（依目前 DOM 順序重建，順序也一併同步）
+    const stepBlocks = page.querySelectorAll(`#steps-${guideId} .step-block`);
+    const domSteps = [];
+    stepBlocks.forEach(block => {
+      const id = block.id;
+      const titleEl = block.querySelector('.step-title');
+      const bodyEl = block.querySelector('.step-body');
+      const numEl = block.querySelector('.step-number');
+      const existing = guide.steps.find(s => s.id === id) || {};
+      domSteps.push({
+        id,
+        title: titleEl ? titleEl.textContent.trim() : (existing.title || ''),
+        body: bodyEl ? bodyEl.textContent.trim() : (existing.body || ''),
+        icon: numEl && numEl.dataset.customIcon ? numEl.dataset.customIcon : (existing.icon || null)
+      });
+    });
+    if (domSteps.length > 0) guide.steps = domSteps;
+
+    // 2) 注意事項
+    const noticeTitleEl = page.querySelector('.notice-title');
+    const noticeBodyEl = page.querySelector('.notice-body');
+    if (noticeTitleEl || noticeBodyEl) {
+      guide.notice = {
+        title: noticeTitleEl ? noticeTitleEl.textContent.trim() : '注意事項',
+        body: noticeBodyEl ? noticeBodyEl.textContent.trim() : ''
+      };
+    }
+
+    // 3) 文件清單表格（標題 + 表頭 + 每列資料）
+    const tableTitleEl = page.querySelector('.section-title-text');
+    if (tableTitleEl) guide.tableSectionTitle = tableTitleEl.textContent.trim();
+
+    const tbl = document.getElementById('tbl-' + guideId);
+    if (tbl) {
+      const headers = [];
+      tbl.querySelectorAll('thead th').forEach(th => {
+        if (th.classList.contains('row-del-cell')) return;
+        const span = th.querySelector('span');
+        headers.push(span ? span.textContent.trim() : '');
+      });
+      const rows = [];
+      tbl.querySelectorAll('tbody tr').forEach(tr => {
+        const row = [];
+        tr.querySelectorAll('td').forEach(td => {
+          if (td.classList.contains('row-del-cell')) return;
+          row.push(td.textContent.trim());
+        });
+        if (row.length > 0) rows.push(row);
+      });
+      guide.table = { headers, rows };
+    }
+
+    // 4) 常見問題（標題 + 問答重建，順序依 DOM）
+    const faqTitleEl = page.querySelector('.faq-section-title');
+    if (faqTitleEl) guide.faqSectionTitle = faqTitleEl.textContent.trim();
+
+    const faqItems = page.querySelectorAll(`#faq-list-${guideId} .faq-item`);
+    const domFaq = [];
+    faqItems.forEach(item => {
+      const qEl = item.querySelector('.faq-question-text');
+      const aEl = item.querySelector('.faq-answer');
+      domFaq.push({
+        q: qEl ? qEl.textContent.trim() : '',
+        a: aEl ? aEl.textContent.trim() : ''
+      });
+    });
+    guide.faq = domFaq;
   }
 
   // ── 字體與字型大小工具 ──
@@ -3453,6 +3526,10 @@
 
   // ── 內容管理 Modal ──
   function openContentManager() {
+    // 若目前正在編輯中，先自動同步畫面內容，避免忘記按「儲存」導致匯出漏資料
+    if (document.body.classList.contains('editing') && currentGuide) {
+      syncGuideFromDOM(currentGuide);
+    }
     document.getElementById('content-manager-modal').classList.add('open');
   }
   function closeContentManager() {
@@ -3480,7 +3557,15 @@
           id: g.id, title: g.title, category: g.category,
           icon: g.icon, desc: g.desc,
           steps: g.steps.map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon })),
-          table: g.table
+          table: g.table,
+          notice: g.notice,
+          tableSectionTitle: g.tableSectionTitle,
+          faq: g.faq,
+          faqSectionTitle: g.faqSectionTitle,
+          links: g.links,
+          contactPhone: g.contactPhone,
+          address: g.address,
+          linksHidden: g.linksHidden
         })),
         catIcons,
         siteTitle: document.getElementById('site-title')?.textContent,
@@ -3571,7 +3656,15 @@
         id: g.id, title: g.title, category: g.category,
         icon: g.icon, desc: g.desc,
         steps: g.steps.map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon })),
-        table: g.table
+        table: g.table,
+        notice: g.notice,
+        tableSectionTitle: g.tableSectionTitle,
+        faq: g.faq,
+        faqSectionTitle: g.faqSectionTitle,
+        links: g.links,
+        contactPhone: g.contactPhone,
+        address: g.address,
+        linksHidden: g.linksHidden
       })),
       catIcons,
       siteTitle: document.getElementById('site-title')?.textContent,
@@ -3669,6 +3762,7 @@
       if (n && !n.dataset.customIcon) { n.innerHTML = (i + 1); n.dataset.num = i + 1; }
     });
     document.querySelectorAll('.step-block').forEach(b => b.classList.remove('drag-over', 'dragging'));
+    syncGuideFromDOM(guideId);
     autoSave();
     showToast('↕️ 步驟順序已更新');
   }
