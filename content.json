@@ -9,7 +9,7 @@
         {
           "id": "lz-s1",
           "title": "選擇申請方式",
-          "body": "123456789",
+          "body": "123456789testtesttesttesttest",
           "icon": null
         },
         {
@@ -21,7 +21,7 @@
         {
           "id": "lz-s3",
           "title": "填寫申請書並提出申請",
-          "body": "至服務窗口取得申請書，填寫姓名、身分證字號、出生年月日、聯絡電話及申請用途。確認資料無誤後，交由承辦人員審核。",
+          "body": "8522222222222222",
           "icon": null
         },
         {
@@ -481,5 +481,5 @@
   "homeCategory": "歡迎使用",
   "homeTitleText": "資料申請教學平台",
   "tipHidden": false,
-  "exportedAt": "2026-07-28T16:38:03.507Z"
+  "exportedAt": "2026-07-28T16:41:47.280Z"
 }
