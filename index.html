@@ -1,0 +1,3774 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資料申請教學平台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1a2e;
+    --ink-light: #4a4a6a;
+    --paper: #faf9f6;
+    --paper-warm: #f3f1ea;
+    --accent: #c8502a;
+    --accent-light: #e8d5cb;
+    --accent-pale: #fdf5f2;
+    --gold: #b8952a;
+    --gold-light: #f5edce;
+    --border: #ddd9cc;
+    --border-strong: #b8b4a8;
+    --success: #2d6a4f;
+    --success-light: #d8f3dc;
+    --blue: #1d4e89;
+    --blue-light: #dbeafe;
+    --step-line: #ddd9cc;
+    --shadow: 0 2px 12px rgba(26,26,46,0.08);
+    --shadow-lg: 0 8px 32px rgba(26,26,46,0.12);
+  }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── 頂部導覽 ── */
+  header {
+    background: var(--ink);
+    color: white;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+  }
+  .logo {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  nav { display: flex; gap: 2rem; }
+  nav a {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s;
+  }
+  nav a:hover { color: white; }
+  .btn-add {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn-add:hover { background: #a84020; }
+  .btn-add:active { transform: scale(0.97); }
+
+  /* ── 主體佈局 ── */
+  .app { display: flex; min-height: calc(100vh - 64px); }
+
+  /* ── 側邊欄 ── */
+  aside {
+    width: 260px;
+    min-width: 260px;
+    background: white;
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 0;
+    position: sticky;
+    top: 64px;
+    height: calc(100vh - 64px);
+    overflow-y: auto;
+  }
+  .sidebar-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--ink-light);
+    text-transform: uppercase;
+    padding: 0.5rem 1.5rem;
+    margin-top: 0.5rem;
+  }
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.55rem 1.5rem;
+    cursor: pointer;
+    color: var(--ink-light);
+    font-size: 14px;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .sidebar-item:hover { background: var(--paper-warm); color: var(--ink); }
+  .sidebar-item.active {
+    background: var(--accent-pale);
+    color: var(--accent);
+    border-left-color: var(--accent);
+    font-weight: 500;
+  }
+  .sidebar-item .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border-strong);
+    flex-shrink: 0;
+  }
+  .sidebar-item.active .dot { background: var(--accent); }
+  .sidebar-add {
+    margin: 1rem 1.5rem;
+    padding: 8px;
+    border: 1.5px dashed var(--border-strong);
+    border-radius: 6px;
+    text-align: center;
+    color: var(--ink-light);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .sidebar-add:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-pale); }
+
+  /* ── 主內容區 ── */
+  main {
+    flex: 1;
+    padding: 2.5rem 3rem;
+    max-width: 900px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+  }
+
+  /* ── 教學頁面 ── */
+  .guide-page { display: none; }
+  .guide-page.active { display: block; }
+
+  /* ── 頁面標題區 ── */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .page-title-group {}
+  .page-category {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .page-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .page-meta {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--ink-light);
+  }
+  .page-actions { display: flex; gap: 8px; }
+  .btn-edit {
+    background: none;
+    border: 1px solid var(--border-strong);
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--ink-light);
+    transition: all 0.15s;
+  }
+  .btn-edit:hover { border-color: var(--ink); color: var(--ink); background: var(--paper-warm); }
+  .btn-save {
+    background: var(--success);
+    color: white;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    display: none;
+  }
+
+  /* ── 復原 / 重做 按鈕 ── */
+  .btn-undo, .btn-redo {
+    display: none;
+    background: none;
+    border: 1px solid var(--border-strong);
+    color: var(--ink-light);
+    padding: 7px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-undo:hover:not(:disabled), .btn-redo:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-pale);
+  }
+  .btn-undo:disabled, .btn-redo:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  body.editing .btn-undo, body.editing .btn-redo { display: inline-block; }
+
+  /* ── 步驟區塊 ── */
+  .steps-container { margin: 2rem 0; }
+  .step-block {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+    position: relative;
+  }
+  .step-block::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 44px;
+    bottom: -30px;
+    width: 1px;
+    background: var(--step-line);
+  }
+  .step-block:last-child::before { display: none; }
+  .step-number {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+  .step-content { flex: 1; }
+  .step-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .step-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .step-title[contenteditable="true"] {
+    border-bottom: 2px solid var(--accent);
+    outline: none;
+    padding: 2px 4px;
+  }
+  .step-body {
+    color: var(--ink-light);
+    font-size: 14.5px;
+    line-height: 1.8;
+    margin-bottom: 12px;
+  }
+  .step-body[contenteditable="true"] {
+    border: 1.5px solid var(--accent);
+    border-radius: 6px;
+    outline: none;
+    padding: 8px 10px;
+    background: var(--accent-pale);
+  }
+
+  /* ── 圖片上傳區 ── */
+  .image-upload-zone {
+    border: 2px dashed var(--border-strong);
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: var(--paper-warm);
+    position: relative;
+    overflow: auto;
+    min-height: 120px;
+    min-width: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    resize: both;
+  }
+  .image-upload-zone:hover { border-color: var(--accent); background: var(--accent-pale); }
+  .image-upload-zone.has-image { border-style: solid; border-color: var(--border); background: transparent; padding: 0; resize: both; overflow: auto; }
+  .image-upload-zone img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; display: block; }
+  .image-upload-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+  }
+  .upload-hint { font-size: 13px; color: var(--ink-light); margin-top: 6px; }
+  .upload-icon { font-size: 2rem; margin-bottom: 6px; }
+  .image-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: none;
+    align-items: center; justify-content: center;
+    border-radius: 8px;
+    color: white;
+    font-size: 13px;
+    gap: 8px;
+  }
+  .image-upload-zone.has-image:hover .image-overlay { display: flex; }
+
+  /* ── 資訊卡片 ── */
+  .info-card {
+    border-radius: 10px;
+    padding: 1.2rem 1.5rem;
+    margin: 1.5rem 0;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .info-card.notice { background: var(--gold-light); border-left: 4px solid var(--gold); }
+  .info-card.tip { background: var(--blue-light); border-left: 4px solid var(--blue); }
+  .info-card.success { background: var(--success-light); border-left: 4px solid var(--success); }
+  .info-card .card-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 1px; }
+  .info-card .card-body { flex: 1; }
+  .info-card .card-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .info-card.notice .card-title { color: var(--gold); }
+  .info-card.tip .card-title { color: var(--blue); }
+  .info-card.success .card-title { color: var(--success); }
+  .info-card p { font-size: 14px; color: var(--ink-light); }
+
+  /* ── 表格編輯器 ── */
+  .table-section { margin: 2rem 0; }
+  .table-section-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .editable-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    font-size: 14px;
+  }
+  .editable-table th {
+    background: var(--ink);
+    color: white;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 500;
+    font-size: 13px;
+  }
+  .editable-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: white;
+    vertical-align: top;
+  }
+  .editable-table tr:last-child td { border-bottom: none; }
+  .editable-table tr:hover td { background: var(--paper-warm); }
+  .editable-table td[contenteditable="true"] {
+    outline: 2px solid var(--accent);
+    background: var(--accent-pale);
+  }
+  .editable-table th[contenteditable="true"] {
+    outline: 2px solid var(--gold);
+  }
+  .table-controls {
+    display: flex; gap: 8px;
+    margin-top: 10px;
+  }
+  .btn-table {
+    background: none;
+    border: 1px solid var(--border-strong);
+    padding: 5px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--ink-light);
+    transition: all 0.15s;
+  }
+  .btn-table:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-pale); }
+
+  /* ── 常見問題 ── */
+  .faq-section { margin: 2rem 0; }
+  .faq-item {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .faq-question {
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    background: white;
+    font-weight: 500;
+    font-size: 14px;
+    user-select: none;
+  }
+  .faq-question:hover { background: var(--paper-warm); }
+  .faq-toggle { font-size: 18px; color: var(--ink-light); transition: transform 0.2s; }
+  .faq-item.open .faq-toggle { transform: rotate(45deg); }
+  .faq-answer {
+    padding: 0 16px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.2s;
+    font-size: 14px;
+    color: var(--ink-light);
+    background: var(--paper-warm);
+  }
+  .faq-item.open .faq-answer { max-height: 200px; padding: 12px 16px; }
+
+  /* ── 新增步驟按鈕 ── */
+  .add-step-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 2px dashed var(--border-strong);
+    border-radius: 8px;
+    padding: 14px 20px;
+    cursor: pointer;
+    color: var(--ink-light);
+    font-size: 14px;
+    background: none;
+    width: 100%;
+    font-family: inherit;
+    transition: all 0.2s;
+    margin-top: 1rem;
+  }
+  .add-step-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-pale); }
+
+  /* ── 空白頁 ── */
+  .empty-state {
+    text-align: center;
+    padding: 5rem 2rem;
+    color: var(--ink-light);
+  }
+  .empty-state h2 { font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--ink); }
+  .empty-state p { font-size: 14px; margin-bottom: 1.5rem; }
+
+  /* ── 進度條 ── */
+  .progress-bar { margin: 1.5rem 0; }
+  .progress-label { font-size: 13px; color: var(--ink-light); margin-bottom: 6px; display: flex; justify-content: space-between; }
+  .progress-track { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--success); border-radius: 4px; transition: width 0.3s; }
+
+  /* ── 編輯模式 ── */
+  .edit-badge {
+    display: none;
+    background: var(--accent);
+    color: white;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  body.editing .edit-badge { display: inline-block; }
+  body.editing .btn-save { display: inline-block; }
+  body.editing .btn-edit { display: none; }
+
+  /* ── 提示 Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--ink);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 999;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ── 新增教學對話框 ── */
+  .modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .modal-bg.open { opacity: 1; pointer-events: auto; }
+  .modal {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    width: 480px;
+    max-width: 90vw;
+    box-shadow: var(--shadow-lg);
+    transform: scale(0.95);
+    transition: transform 0.2s;
+  }
+  .modal-bg.open .modal { transform: scale(1); }
+  .modal h3 { font-family: 'Noto Serif TC', serif; font-size: 1.2rem; margin-bottom: 1.5rem; }
+  .form-group { margin-bottom: 1rem; }
+  .form-label { font-size: 13px; font-weight: 500; color: var(--ink-light); margin-bottom: 5px; display: block; }
+  .form-input {
+    width: 100%;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--ink);
+    background: white;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: var(--accent); }
+  .form-select {
+    width: 100%;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--ink);
+    background: white;
+    outline: none;
+  }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.5rem; }
+  .btn-cancel {
+    background: none; border: 1px solid var(--border-strong);
+    padding: 8px 18px; border-radius: 6px;
+    cursor: pointer; font-family: inherit; font-size: 14px; color: var(--ink-light);
+  }
+  .btn-confirm {
+    background: var(--ink); color: white; border: none;
+    padding: 8px 18px; border-radius: 6px;
+    cursor: pointer; font-family: inherit; font-size: 14px;
+  }
+  .btn-confirm:hover { background: var(--accent); }
+
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .tag-required { background: var(--accent-light); color: var(--accent); }
+  .tag-optional { background: var(--gold-light); color: var(--gold); }
+  .tag-new { background: var(--success-light); color: var(--success); }
+
+  /* ── 步驟刪除按鈕 ── */
+  .btn-del-step {
+    display: none;
+    margin-left: auto;
+    background: none;
+    border: 1px solid #e0b0a0;
+    color: var(--accent);
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .btn-del-step:hover { background: var(--accent); color: white; }
+  body.editing .btn-del-step { display: inline-flex; align-items: center; gap: 4px; }
+
+  /* ── 表格刪除按鈕 ── */
+  .btn-del-row, .btn-del-col {
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 2px 5px;
+    border-radius: 4px;
+    line-height: 1;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .btn-del-row:hover, .btn-del-col:hover { color: var(--accent); background: var(--accent-pale); }
+  .btn-del-col {
+    position: absolute;
+    top: 4px; right: 20px;
+    display: none;
+    font-size: 10px;
+    color: rgba(255,255,255,0.5);
+  }
+  .btn-del-col:hover { color: white; background: rgba(200,80,42,0.6); }
+  body.editing .btn-del-col { display: block; }
+  .row-del-cell { width: 36px; text-align: center; padding: 6px 4px !important; }
+  .btn-del-row { display: none; }
+  body.editing .btn-del-row { display: inline-block; }
+
+  /* ── 欄寬拖曳 ── */
+  .col-resizer {
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 5px;
+    cursor: col-resize;
+    background: transparent;
+    z-index: 1;
+  }
+  .col-resizer:hover, .col-resizer:active { background: rgba(255,255,255,0.35); }
+
+  /* ── 側邊欄增強 ── */
+  .sidebar-cat-title { cursor: default; }
+  .sidebar-cat-title:hover { color: var(--ink); }
+  .sidebar-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+  .sidebar-label:hover { text-decoration: underline dotted; }
+  .sidebar-del {
+    display: none;
+    color: #ccc;
+    font-size: 11px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .sidebar-del:hover { color: var(--accent); background: var(--accent-pale); }
+  .sidebar-item:hover .sidebar-del { display: inline; }
+
+
+  /* ── 圖片拖曳大小（已在上方主樣式中設定）── */
+  .resize-hint {
+    position: absolute;
+    bottom: 4px; right: 6px;
+    font-size: 10px;
+    color: var(--border-strong);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* ── 字體工具列 ── */
+  .font-toolbar {
+    display: none;
+    position: fixed;
+    top: 72px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    border-radius: 10px;
+    padding: 6px 10px;
+    gap: 6px;
+    align-items: center;
+    z-index: 150;
+    box-shadow: var(--shadow-lg);
+    flex-wrap: wrap;
+    max-width: 95vw;
+  }
+  body.editing .font-toolbar { display: flex; }
+  .font-toolbar label { color: rgba(255,255,255,0.6); font-size: 11px; white-space: nowrap; }
+  .font-toolbar select, .font-toolbar input[type=number] {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    border-radius: 5px;
+    padding: 3px 6px;
+    font-size: 12px;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+  }
+  .font-toolbar input[type=number] { width: 52px; }
+  .font-toolbar select option { background: #1a1a2e; color: white; }
+  .font-toolbar .tb-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 2px; }
+  .font-toolbar button {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    border-radius: 5px;
+    padding: 3px 9px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+  .font-toolbar button:hover { background: rgba(255,255,255,0.25); }
+  .font-toolbar .tb-hint { color: rgba(255,255,255,0.4); font-size: 11px; }
+
+  /* ── 注意事項可編輯 ── */
+  .notice-title[contenteditable="true"],
+  .notice-body[contenteditable="true"] {
+    outline: none;
+    border-bottom: 1.5px dashed var(--gold);
+  }
+
+  /* ══ 手機下拉選單 Bar ══ */
+  /* 桌機不顯示 */
+  .mobile-nav-bar { display: none; }
+  .mobile-drawer  { display: none; }
+
+  /* ── 手機自適應 ── */
+  @media (max-width: 768px) {
+    header { padding: 0 1rem; height: 52px; }
+    nav { display: none; }
+    .logo { font-size: 0.95rem; }
+    .logo-icon { width: 26px; height: 26px; font-size: 13px; }
+    .btn-add { padding: 6px 11px; font-size: 12px; }
+
+    /* 主佈局：桌機 aside 隱藏，改用手機 bar */
+    .app { flex-direction: column; }
+    aside { display: none; }
+
+    /* ── 手機 Nav Bar（常駐細條，黏在 header 下方）── */
+    .mobile-nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 52px;
+      z-index: 90;
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: 0 1rem;
+      height: 44px;
+      box-shadow: 0 1px 6px rgba(26,26,46,0.07);
+      gap: 10px;
+    }
+    .mobile-nav-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+    .mobile-nav-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--paper-warm);
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-family: inherit;
+      color: var(--ink-light);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .mobile-nav-toggle:hover, .mobile-nav-toggle.open {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-pale);
+    }
+    .mobile-nav-arrow {
+      display: inline-block;
+      transition: transform 0.25s cubic-bezier(0.22,1,0.36,1);
+      font-size: 10px;
+    }
+    .mobile-nav-toggle.open .mobile-nav-arrow { transform: rotate(180deg); }
+
+    /* ── 下拉抽屜（Drawer）── */
+    .mobile-drawer {
+      display: block;
+      position: fixed;
+      top: 96px; /* 52px header + 44px bar */
+      left: 0; right: 0;
+      z-index: 89;
+      background: white;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 6px 20px rgba(26,26,46,0.13);
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.32s cubic-bezier(0.22,1,0.36,1),
+                  opacity 0.22s ease;
+      opacity: 0;
+    }
+    .mobile-drawer.open {
+      max-height: 60vh;
+      overflow-y: auto;
+      opacity: 1;
+    }
+    .drawer-inner { padding: 0.5rem 0 0.75rem; }
+
+    /* Drawer 內的 sidebar 項目樣式 */
+    .drawer-cat {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      padding: 0.6rem 1.2rem 0.2rem;
+    }
+    .drawer-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0.55rem 1.2rem;
+      cursor: pointer;
+      color: var(--ink-light);
+      font-size: 14px;
+      transition: background 0.12s, color 0.12s;
+      border-left: 3px solid transparent;
+    }
+    .drawer-item:hover { background: var(--paper-warm); color: var(--ink); }
+    .drawer-item.active {
+      background: var(--accent-pale);
+      color: var(--accent);
+      border-left-color: var(--accent);
+      font-weight: 600;
+    }
+    .drawer-item .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--border-strong);
+      flex-shrink: 0;
+    }
+    .drawer-item.active .dot { background: var(--accent); }
+    .drawer-add {
+      margin: 0.6rem 1.2rem 0.2rem;
+      padding: 8px;
+      border: 1.5px dashed var(--border-strong);
+      border-radius: 6px;
+      text-align: center;
+      color: var(--ink-light);
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .drawer-add:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* 半透明背景遮罩 */
+    .drawer-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 88;
+      background: rgba(0,0,0,0);
+      transition: background 0.25s;
+    }
+    .drawer-backdrop.open {
+      display: block;
+      background: rgba(0,0,0,0.25);
+    }
+
+    /* main 正常填滿，不再受 aside 擠壓 */
+    main { padding: 1.2rem 1rem; max-width: 100%; }
+    .page-header { flex-direction: column; gap: 12px; }
+    .page-title { font-size: 1.35rem; }
+    .page-actions { align-self: flex-end; }
+
+    .step-block { gap: 0.8rem; }
+    .step-number { width: 32px; height: 32px; font-size: 12px; }
+
+    .info-card { padding: 0.9rem 1rem; }
+    .modal { padding: 1.5rem 1.2rem; }
+
+    .table-controls { flex-wrap: wrap; }
+    .editable-table { font-size: 12px; }
+    .editable-table th, .editable-table td { padding: 8px 10px; }
+
+    .font-toolbar { top: 52px; padding: 5px 8px; gap: 4px; }
+    .font-toolbar label { display: none; }
+    .font-toolbar .tb-hint { display: none; }
+  }
+
+  @media (max-width: 480px) {
+    .page-title { font-size: 1.15rem; }
+    .step-block::before { left: 16px; }
+    main { padding: 1rem 0.75rem; }
+  }
+
+  /* ── 側邊欄分類列 ── */
+  .sidebar-cat-row {
+    display: flex;
+    align-items: center;
+    padding-right: 0.5rem;
+  }
+  .sidebar-cat-row .sidebar-section-title {
+    flex: 1;
+  }
+  .sidebar-cat-del {
+    display: none;
+    color: #ccc;
+    font-size: 11px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .sidebar-cat-del:hover { color: var(--accent); background: var(--accent-pale); }
+  .sidebar-cat-row:hover .sidebar-cat-del { display: inline; }
+
+  /* ── 媒體區塊（圖片 / 影片）── */
+  .step-media { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+  .media-block {
+    position: relative;
+    border-radius: 10px;
+    overflow: visible;
+  }
+  .btn-del-media {
+    position: absolute;
+    top: -8px; right: -8px;
+    z-index: 10;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    border: 2px solid white;
+    font-size: 11px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-del-media:hover { background: #8b2010; transform: scale(1.1); }
+  body.editing .btn-del-media { display: flex; }
+
+  /* ── 影片縮圖卡片 ── */
+  .video-card {
+    border-radius: 10px;
+    overflow: hidden;
+    background: #0f0f0f;
+    position: relative;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: transform 0.15s;
+  }
+  .video-card:hover { transform: translateY(-2px); }
+  .video-thumb {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    display: block;
+  }
+  .video-play-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.35);
+    transition: background 0.2s;
+    gap: 10px;
+  }
+  .video-card:hover .video-play-overlay { background: rgba(0,0,0,0.5); }
+  .video-play-btn {
+    width: 64px; height: 64px;
+    background: rgba(255,0,0,0.9);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.15s, background 0.15s;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  }
+  .video-card:hover .video-play-btn { transform: scale(1.1); background: #ff0000; }
+  .video-play-btn svg { width: 28px; height: 28px; fill: white; margin-left: 4px; }
+  .video-title-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.75));
+    color: white;
+    font-size: 13px;
+    padding: 24px 12px 10px;
+    font-weight: 500;
+  }
+
+  /* ── 影片播放 Modal ── */
+  .video-modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 300;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .video-modal-bg.open { opacity: 1; pointer-events: auto; }
+  .video-modal-inner {
+    width: min(90vw, 900px);
+    position: relative;
+  }
+  .video-modal-close {
+    position: absolute;
+    top: -40px; right: 0;
+    background: none; border: none;
+    color: white; font-size: 28px;
+    cursor: pointer; line-height: 1;
+    transition: opacity 0.15s;
+  }
+  .video-modal-close:hover { opacity: 0.7; }
+  .video-modal-frame {
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: 10px;
+    border: none;
+    display: block;
+    background: #000;
+  }
+
+  /* ── 步驟媒體控制按鈕 ── */
+  .step-media-controls {
+    display: none;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  body.editing .step-media-controls { display: flex; }
+  .btn-media {
+    background: none;
+    border: 1.5px dashed var(--border-strong);
+    border-radius: 7px;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--ink-light);
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .btn-media:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-pale); }
+
+  /* ══ 唯讀模式 ══ */
+  /* 用法：在網址後加上 ?view=1 即進入純瀏覽模式 */
+  body.view-only .btn-add,
+  body.view-only .btn-edit,
+  body.view-only .btn-save,
+  body.view-only .btn-undo,
+  body.view-only .btn-redo,
+  body.view-only .btn-table,
+  body.view-only .add-step-btn,
+  body.view-only .font-toolbar,
+  body.view-only .table-controls,
+  body.view-only .sidebar-add,
+  body.view-only .sidebar-del,
+  body.view-only .sidebar-cat-del,
+  body.view-only .btn-del-step,
+  body.view-only .btn-del-media,
+  body.view-only .btn-del-row,
+  body.view-only .btn-del-col,
+  body.view-only .col-resizer,
+  body.view-only .resize-hint,
+  body.view-only .step-media-controls,
+  body.view-only .btn-add-link,
+  body.view-only .btn-del-link,
+  body.view-only .image-upload-zone input[type="file"],
+  body.view-only .image-overlay {
+    display: none !important;
+    pointer-events: none !important;
+  }
+  body.view-only .image-upload-zone {
+    cursor: default;
+    resize: none;
+  }
+  body.view-only .view-only-badge {
+    display: flex !important;
+  }
+
+  /* 唯讀標記 */
+  .view-only-badge {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.85);
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── 提示區塊隱藏按鈕 ── */
+  .home-tip-card { position: relative; }
+  .btn-hide-tip {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: none; border: none;
+    color: var(--ink-light); font-size: 14px;
+    cursor: pointer; padding: 2px 6px; border-radius: 4px;
+    transition: all 0.15s;
+  }
+  .btn-hide-tip:hover { color: var(--accent); background: var(--accent-pale); }
+  .tip-icon { transition: transform 0.15s; }
+  .tip-icon:hover { transform: scale(1.2); }
+
+  /* ── 步驟數字可點擊換 icon ── */
+  .step-num-clickable {
+    cursor: default;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  body.editing .step-num-clickable {
+    cursor: pointer;
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+  body.editing .step-num-clickable:hover {
+    transform: scale(1.12);
+    box-shadow: 0 0 0 3px var(--accent);
+  }
+
+  /* ── Icon Picker ── */
+  .icon-picker {
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .icon-selected {
+    font-size: 2rem;
+    text-align: center;
+    padding: 10px;
+    background: var(--paper-warm);
+    border-bottom: 1px solid var(--border);
+    cursor: default;
+  }
+  .icon-grid, .icon-grid-large {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 2px;
+    padding: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    background: var(--paper-warm);
+  }
+  .icon-grid-large {
+    grid-template-columns: repeat(9, 1fr);
+    max-height: 320px;
+  }
+  .icon-opt {
+    background: white;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 5px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.1s;
+    line-height: 1;
+    aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .icon-opt:hover { background: var(--accent-pale); border-color: var(--accent); transform: scale(1.1); }
+  .icon-opt.selected { background: var(--accent-pale); border-color: var(--accent); }
+
+  /* ══ 手機抽屜滑入動畫（已在 drawer CSS 中設定）══ */
+  @media (max-width: 768px) {
+    main {
+      overflow-y: auto;
+    }
+  }
+
+  /* ══ 頁面切換動畫基底 ══ */
+  .guide-page, #home-view {
+    will-change: opacity, transform;
+  }
+
+
+  /* ── 搜尋列 ── */
+  .search-bar-wrap {
+    padding: 10px 1rem 6px;
+    border-bottom: 1px solid var(--border);
+    background: white;
+  }
+  .search-bar {
+    width: 100%;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 7px 12px 7px 32px;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    background: var(--paper-warm) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat 10px center;
+    transition: border-color 0.15s;
+  }
+  .search-bar:focus { border-color: var(--accent); background-color: white; }
+  .search-no-result {
+    padding: 0.8rem 1.5rem;
+    font-size: 13px;
+    color: var(--ink-light);
+    display: none;
+  }
+
+  /* ── 工具列 ── */
+  .toolbar-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .btn-toolbar {
+    display: flex; align-items: center; gap: 5px;
+    background: none;
+    border: 1px solid var(--border-strong);
+    border-radius: 7px;
+    padding: 6px 13px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--ink-light);
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-toolbar:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-pale); }
+  .btn-toolbar.active { background: var(--accent); color: white; border-color: var(--accent); }
+  body.view-only .toolbar-row .btn-toolbar:not(.always-show) { display: none; }
+
+  /* ── 步驟拖曳 ── */
+  body.editing .step-block { cursor: grab; }
+  body.editing .step-block:active { cursor: grabbing; }
+  .step-block.drag-over { outline: 2px dashed var(--accent); border-radius: 10px; background: var(--accent-pale); }
+  .step-block.dragging { opacity: 0.4; }
+
+  /* ── 進度打勾 ── */
+  .step-check {
+    position: absolute;
+    top: -4px; right: -4px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid var(--border-strong);
+    cursor: pointer;
+    display: none;
+    align-items: center; justify-content: center;
+    font-size: 10px;
+    transition: all 0.15s;
+    color: transparent;
+    z-index: 2;
+  }
+  .step-check:hover { border-color: var(--success); }
+  .step-block.done .step-check { background: var(--success); border-color: var(--success); color: white; }
+  .step-block.done .step-title { text-decoration: line-through; opacity: 0.6; }
+  .step-block.done .step-body { opacity: 0.5; }
+  .progress-bar-wrap { margin: 0 0 1.5rem; }
+  .progress-bar-label { font-size: 12px; color: var(--ink-light); display: flex; justify-content: space-between; margin-bottom: 5px; }
+  .progress-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--success); border-radius: 3px; transition: width 0.4s ease; }
+
+  /* ── FAQ 新版 ── */
+  .faq-question-row {
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .faq-question-row:hover { background: var(--paper-warm); }
+  .faq-question-text { font-weight: 500; font-size: 14px; flex: 1; outline: none; min-width: 0; }
+  .faq-question-text[contenteditable="true"] { border-bottom: 1.5px dashed var(--accent); cursor: text; }
+  .faq-controls { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .faq-toggle-btn { font-size: 18px; color: var(--ink-light); transition: transform 0.2s; cursor: pointer; width: 24px; text-align: center; user-select: none; }
+  .faq-item.open .faq-toggle-btn { transform: rotate(45deg); }
+  .btn-del-faq { display: none; background: none; border: none; color: #ccc; font-size: 12px; cursor: pointer; padding: 2px 6px; border-radius: 4px; font-family: inherit; transition: all 0.15s; }
+  .btn-del-faq:hover { color: var(--accent); background: var(--accent-pale); }
+  body.editing .btn-del-faq { display: inline-block; }
+  .faq-answer { padding: 0 16px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.2s; font-size: 14px; color: var(--ink-light); background: var(--paper-warm); outline: none; line-height: 1.8; }
+  .faq-item.open .faq-answer { max-height: 300px; padding: 12px 16px; }
+  .faq-answer[contenteditable="true"] { cursor: text; }
+
+  /* ── 區塊標題列 ── */
+  .section-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 10px; }
+  .section-title-text { outline: none; }
+  .section-title-text[contenteditable="true"] { border-bottom: 1.5px dashed var(--accent); }
+  .faq-section-title { outline: none; margin: 0; }
+  .faq-section-title[contenteditable="true"] { border-bottom: 1.5px dashed var(--accent); }
+
+  /* ── 移除/還原區塊按鈕 ── */
+  .btn-remove-section { display: none; background: none; border: 1px solid #e0b0a0; color: var(--accent); font-size: 12px; padding: 4px 10px; border-radius: 5px; cursor: pointer; font-family: inherit; white-space: nowrap; flex-shrink: 0; transition: all 0.15s; }
+  .btn-remove-section:hover { background: var(--accent); color: white; }
+  body.editing .btn-remove-section { display: inline-flex; align-items: center; gap: 4px; }
+  .btn-add-faq { display: none; background: none; border: 1.5px dashed var(--border-strong); border-radius: 6px; padding: 4px 12px; font-size: 12px; cursor: pointer; font-family: inherit; color: var(--ink-light); transition: all 0.15s; white-space: nowrap; }
+  .btn-add-faq:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-pale); }
+  body.editing .btn-add-faq { display: inline-block; }
+  .btn-restore-section { display: none; width: 100%; border: 2px dashed var(--border-strong); border-radius: 10px; padding: 14px; margin: 0.8rem 0; background: none; color: var(--ink-light); font-size: 14px; font-family: inherit; cursor: pointer; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
+  .btn-restore-section:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-pale); }
+  body.editing .btn-restore-section[style*="flex"] { display: flex; }
+
+  /* ── 儲存狀態 ── */
+  .save-status { font-size: 12px; color: rgba(255,255,255,0.65); padding: 3px 8px; border-radius: 5px; background: rgba(255,255,255,0.08); opacity: 0; transition: opacity 0.5s; white-space: nowrap; }
+  .btn-header-tool { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); border-radius: 6px; padding: 5px 9px; font-size: 14px; cursor: pointer; transition: all 0.15s; }
+  .btn-header-tool:hover { background: rgba(255,255,255,0.2); color: white; }
+  body.view-only .btn-header-tool { display: none; }
+
+  /* ── 側邊欄分類列 ── */
+  .sidebar-cat-row { display: flex; align-items: center; padding-right: 0.5rem; padding-left: 0.5rem; }
+  .sidebar-cat-row .sidebar-section-title { flex: 1; }
+  .sidebar-cat-icon { font-size: 1rem; cursor: pointer; flex-shrink: 0; width: 26px; text-align: center; border-radius: 5px; transition: transform 0.15s, background 0.15s; padding: 1px 2px; user-select: none; }
+  .sidebar-cat-icon:hover { background: var(--accent-pale); transform: scale(1.18); }
+  .sidebar-cat-del { display: none; color: #ccc; font-size: 11px; padding: 2px 5px; border-radius: 4px; cursor: pointer; flex-shrink: 0; transition: all 0.15s; }
+  .sidebar-cat-del:hover { color: var(--accent); background: var(--accent-pale); }
+  .sidebar-cat-row:hover .sidebar-cat-del { display: inline; }
+  .cat-icon-picker { position: fixed; z-index: 500; background: white; border: 1px solid var(--border-strong); border-radius: 10px; padding: 8px; box-shadow: var(--shadow-lg); display: none; grid-template-columns: repeat(8, 32px); gap: 3px; max-width: 300px; }
+  .cat-icon-picker.open { display: grid; }
+  .cat-icon-opt { width: 32px; height: 32px; border: 1px solid transparent; border-radius: 6px; background: none; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.1s; }
+  .cat-icon-opt:hover { background: var(--accent-pale); border-color: var(--accent); transform: scale(1.1); }
+  .cat-icon-opt.selected { background: var(--accent-pale); border-color: var(--accent); }
+
+  /* ── 媒體區塊 ── */
+  .step-media { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+  .media-block { position: relative; border-radius: 10px; overflow: visible; }
+  .btn-del-media { position: absolute; top: -8px; right: -8px; z-index: 10; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: white; border: 2px solid white; font-size: 11px; cursor: pointer; display: none; align-items: center; justify-content: center; line-height: 1; box-shadow: 0 2px 6px rgba(0,0,0,0.18); transition: background 0.15s; }
+  .btn-del-media:hover { background: #8b2010; }
+  body.editing .btn-del-media { display: flex; }
+  .video-block .video-wrap { position: relative; padding-bottom: 56.25%; height: 0; border-radius: 10px; overflow: hidden; background: #000; }
+  .video-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 10px; }
+  .step-media-controls { display: none; gap: 8px; margin-top: 10px; }
+  body.editing .step-media-controls { display: flex; }
+  .btn-media { background: none; border: 1.5px dashed var(--border-strong); border-radius: 7px; padding: 6px 14px; font-size: 13px; cursor: pointer; font-family: inherit; color: var(--ink-light); transition: all 0.15s; display: flex; align-items: center; gap: 5px; }
+  .btn-media:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-pale); }
+
+  /* ── 내容管理 Modal ── */
+  .cm-section { margin-bottom: 0.8rem; }
+  .cm-section-title { font-weight: 700; font-size: 14px; color: var(--ink); margin-bottom: 6px; }
+  .cm-desc { font-size: 13px; color: var(--ink-light); line-height: 1.7; margin-bottom: 10px; }
+  .cm-desc code { background: var(--paper-warm); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; font-size: 12px; color: var(--accent); font-family: 'Courier New', monospace; }
+  .cm-divider { height: 1px; background: var(--border); margin: 1rem 0; }
+  .btn-cm-primary { width: 100%; background: var(--ink); color: white; border: none; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-family: inherit; font-weight: 600; cursor: pointer; transition: background 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-cm-primary:hover { background: var(--accent); }
+  .btn-cm-secondary { width: 100%; background: none; border: 1.5px solid var(--border-strong); border-radius: 8px; padding: 9px 16px; font-size: 13px; font-family: inherit; color: var(--ink-light); cursor: pointer; transition: all 0.15s; }
+  .btn-cm-secondary:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-pale); }
+  .cm-step { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--ink-light); padding: 5px 0; line-height: 1.6; }
+  .cm-num { width: 20px; height: 20px; border-radius: 50%; background: var(--ink); color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── 列印 ── */
+  @media print {
+    header, aside, .mobile-nav-bar, .mobile-drawer, .drawer-backdrop,
+    .font-toolbar, .btn-add, .btn-edit, .btn-save, .btn-undo, .btn-redo, .toolbar-row,
+    .add-step-btn, .step-media-controls, .btn-del-step, .btn-del-faq,
+    .btn-remove-section, .btn-add-faq, .table-controls, .btn-restore-section,
+    .page-actions, nav, .toast, .modal-bg, .video-modal-bg,
+    .cat-icon-picker, .step-check, .site-footer { display: none !important; }
+    body { background: white; }
+    main { max-width: 100%; padding: 0; }
+    .guide-page { display: block !important; }
+    #home-view { display: none !important; }
+    .faq-answer { max-height: none !important; padding: 10px 16px !important; }
+  }
+
+  /* ── 最後更新日期 ── */
+  .updated-date {
+    cursor: pointer;
+    border-bottom: 1px dashed transparent;
+  }
+  body.editing .updated-date { border-bottom-color: var(--border-strong); }
+  body.editing .updated-date:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* ── 相關連結 / 聯絡資訊卡片 ── */
+  .info-links-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.1rem 1.3rem;
+    margin: 1.5rem 0;
+  }
+  .info-links-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .link-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    font-size: 13.5px;
+  }
+  .link-item a {
+    color: var(--blue);
+    text-decoration: none;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .link-item a:hover { text-decoration: underline; }
+  .btn-del-link {
+    display: none;
+    background: none; border: none;
+    color: #ccc; font-size: 11px; cursor: pointer;
+    padding: 2px 6px; border-radius: 4px;
+  }
+  .btn-del-link:hover { color: var(--accent); background: var(--accent-pale); }
+  body.editing .btn-del-link { display: inline-block; }
+  .btn-add-link {
+    display: none;
+    background: none;
+    border: 1.5px dashed var(--border-strong);
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--ink-light);
+    margin-top: 6px;
+  }
+  .btn-add-link:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-pale); }
+  body.editing .btn-add-link { display: inline-block; }
+
+  .contact-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+    font-size: 13.5px;
+    color: var(--ink-light);
+  }
+  .contact-row a { color: var(--blue); text-decoration: none; }
+  .contact-row a:hover { text-decoration: underline; }
+  .contact-editable {
+    outline: none;
+    border-bottom: 1px dashed transparent;
+  }
+  body.editing .contact-editable { border-bottom-color: var(--border-strong); cursor: text; }
+
+  /* ── 免責聲明 ── */
+  .disclaimer-bar {
+    background: var(--paper-warm);
+    color: var(--ink-light);
+    text-align: center;
+    padding: 8px 1rem;
+    font-size: 11.5px;
+    border-top: 1px solid var(--border);
+    line-height: 1.6;
+    cursor: text;
+  }
+  .disclaimer-bar[contenteditable="true"] {
+    outline: 1px dashed var(--accent);
+  }
+
+  /* ── Footer ── */
+  .site-footer { background: var(--ink); color: rgba(255,255,255,0.55); text-align: center; padding: 14px 1rem; font-size: 13px; letter-spacing: 0.04em; border-top: 1px solid rgba(255,255,255,0.08); }
+  .footer-inner { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .footer-brand { color: rgba(255,255,255,0.85); font-weight: 600; font-family: 'Noto Serif TC', serif; }
+  .footer-sep { color: rgba(255,255,255,0.25); }
+  .footer-copy { color: rgba(255,255,255,0.45); }
+</style>
+</head>
+<body>
+
+
+<!-- 頂部導覽 -->
+<header>
+  <div class="logo" onclick="showSection('home')" title="點擊返回首頁" style="cursor:pointer">
+    <div class="logo-icon" id="logo-icon">📋</div>
+    <span id="site-title">資料申請教學平台</span>
+  </div>
+  <nav>
+    <a href="#" onclick="showSection('home')">首頁</a>
+    <a href="#" onclick="showSection('home')">所有教學</a>
+  </nav>
+  <div class="header-clock" id="header-clock"></div>
+  <div class="save-status" id="save-status" title="資料已自動儲存"></div>
+  <button class="btn-header-tool" onclick="openContentManager()" title="內容管理">⚙️</button>
+  <div class="view-only-badge">👁 瀏覽模式</div>
+  <button class="btn-add" onclick="openModal()">＋ 新增教學</button>
+</header>
+
+<!-- 手機下拉 Nav Bar -->
+<div class="mobile-nav-bar" id="mobile-nav-bar">
+  <span class="mobile-nav-label" id="mobile-nav-label">📋 所有教學</span>
+  <button class="mobile-nav-toggle" id="mobile-nav-toggle" onclick="toggleDrawer()">
+    ☰ 切換教學 <span class="mobile-nav-arrow" id="mobile-nav-arrow">▼</span>
+  </button>
+</div>
+
+<!-- 半透明遮罩 -->
+<div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+
+<!-- 下拉抽屜 -->
+<div class="mobile-drawer" id="mobile-drawer">
+  <div class="drawer-inner" id="drawer-inner"></div>
+</div>
+
+<!-- 字體工具列 -->
+<div class="font-toolbar" id="font-toolbar">
+  <label>字體</label>
+  <select id="tb-font" onchange="applyFont(this.value)">
+    <option value="'Noto Sans TC',sans-serif">Noto Sans TC</option>
+    <option value="'Noto Serif TC',serif">Noto Serif TC（宋體）</option>
+    <option value="Arial,sans-serif">Arial</option>
+    <option value="Georgia,serif">Georgia</option>
+    <option value="'Courier New',monospace">Courier New</option>
+  </select>
+  <div class="tb-sep"></div>
+  <label>大小</label>
+  <input type="number" id="tb-size" min="10" max="60" value="15" onchange="applySize(this.value)" oninput="applySize(this.value)">
+  <span style="color:rgba(255,255,255,0.5);font-size:12px">px</span>
+  <div class="tb-sep"></div>
+  <button onclick="applyBold()" title="粗體"><b>B</b></button>
+  <button onclick="applyItalic()" title="斜體"><i>I</i></button>
+  <div class="tb-sep"></div>
+  <span class="tb-hint">選取文字後套用樣式</span>
+</div>
+
+<div class="app">
+  <!-- 側邊欄 -->
+  <aside id="sidebar">
+    <div class="search-bar-wrap">
+      <input class="search-bar" id="sidebar-search" placeholder="搜尋教學..." oninput="filterSidebar(this.value)">
+    </div>
+    <div id="sidebar-list"></div>
+    <div id="search-no-result" class="search-no-result">找不到符合的教學</div>
+    <div class="sidebar-add" onclick="openModal()">＋ 新增教學頁面</div>
+  </aside>
+
+  <!-- 主內容 -->
+  <main id="main-content">
+    <!-- 首頁 / 歡迎畫面 -->
+    <div id="home-view">
+      <div class="page-header">
+        <div class="page-title-group">
+          <div class="page-category" id="home-category" contenteditable="false" ondblclick="enableHomeEdit(this)" title="雙擊編輯">歡迎使用</div>
+          <div class="page-title home-main-title" style="font-family:'Noto Serif TC',serif">
+            <span id="home-title-text" contenteditable="false" ondblclick="enableHomeEdit(this)" title="雙擊編輯標題">資料申請教學平台</span>
+          </div>
+        </div>
+        <div class="page-actions home-edit-actions">
+          <button class="btn-edit" id="home-edit-btn" onclick="toggleHomeEdit()">✏️ 編輯首頁</button>
+          <button class="btn-save" id="home-save-btn" style="display:none" onclick="saveHomeEdit()">✅ 完成編輯</button>
+        </div>
+      </div>
+      <div class="info-card tip home-tip-card" id="home-tip-card">
+        <div class="card-icon tip-icon" id="tip-icon" onclick="pickTipIcon()" title="點擊換圖示" style="cursor:pointer">💡</div>
+        <div class="card-body">
+          <div class="card-title" id="tip-title" contenteditable="false" title="雙擊編輯標題" ondblclick="enableHomeEdit(this)">如何使用此平台</div>
+          <p id="tip-body" contenteditable="false" title="雙擊編輯內文" ondblclick="enableHomeEdit(this)">點擊右上角「新增教學」來建立新的教學頁面，或從左側選單選擇現有教學。每個教學頁面支援圖文並茂的步驟說明與可編輯表格。</p>
+        </div>
+        <button class="btn-hide-tip" onclick="document.getElementById('home-tip-card').style.display='none';showToast('已隱藏提示區塊')" title="隱藏此區塊">✕</button>
+      </div>
+      <div id="guide-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-top:2rem;"></div>
+      <div id="empty-home" class="empty-state" style="display:none;">
+        <div style="font-size:3rem;margin-bottom:1rem;">📂</div>
+        <h2>尚無教學頁面</h2>
+        <p>點擊「新增教學」開始建立你的第一個教學！</p>
+        <button class="btn-add" onclick="openModal()">＋ 新增教學</button>
+      </div>
+    </div>
+
+    <!-- 動態教學頁面容器 -->
+    <div id="guides-container"></div>
+  </main>
+</div>
+
+<!-- 新增教學 Modal -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3>📝 建立新教學</h3>
+    <div class="form-group">
+      <label class="form-label">教學名稱 *</label>
+      <input type="text" class="form-input" id="new-title" placeholder="例如：戶籍謄本申請步驟">
+    </div>
+    <div class="form-group">
+      <label class="form-label">分類名稱</label>
+      <input type="text" class="form-input" id="new-category" placeholder="例如：戶政、稅務、其他...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">選擇 Icon</label>
+      <div class="icon-picker" id="icon-picker">
+        <div class="icon-selected" id="icon-selected">📋</div>
+        <div class="icon-grid" id="icon-grid"></div>
+      </div>
+      <input type="hidden" id="new-icon" value="📋">
+    </div>
+    <div class="form-group">
+      <label class="form-label">簡短描述</label>
+      <input type="text" class="form-input" id="new-desc" placeholder="簡述此教學內容">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">取消</button>
+      <button class="btn-confirm" onclick="createGuide()">建立教學</button>
+    </div>
+  </div>
+</div>
+
+<!-- 步驟 Icon 選擇器 Modal -->
+<div class="modal-bg" id="step-icon-modal">
+  <div class="modal" style="max-width:440px">
+    <h3>🎨 自訂步驟圖示</h3>
+
+    <!-- 預覽 -->
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:1.2rem;padding:12px 16px;background:var(--paper-warm);border-radius:10px;">
+      <div id="step-icon-preview" style="width:48px;height:48px;border-radius:50%;background:#1a1a2e;color:white;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;transition:all 0.2s;">1</div>
+      <div style="font-size:13px;color:var(--ink-light)">預覽效果</div>
+    </div>
+
+    <!-- 底色選擇 -->
+    <div style="margin-bottom:1rem;">
+      <div style="font-size:12px;font-weight:700;color:var(--ink-light);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;">底色</div>
+      <div class="color-swatch-grid" id="step-color-grid"></div>
+    </div>
+
+    <!-- 圖示選擇 -->
+    <div style="margin-bottom:1rem;">
+      <div style="font-size:12px;font-weight:700;color:var(--ink-light);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;">圖示</div>
+      <div class="icon-grid-large" id="step-icon-grid"></div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.5rem;">
+      <button class="btn-cancel" onclick="resetStepStyle()" style="color:var(--accent);border-color:var(--accent)">↺ 恢復預設</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-cancel" onclick="closeStepIconModal()">取消</button>
+        <button class="btn-confirm" onclick="confirmStepStyle()">套用</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 內容管理 Modal -->
+<div class="modal-bg" id="content-manager-modal">
+  <div class="modal" style="max-width:480px">
+    <h3>⚙️ 內容管理</h3>
+
+    <div class="cm-section">
+      <div class="cm-section-title">📤 發布內容到網站</div>
+      <p class="cm-desc">編輯完成後，匯出 <code>content.json</code> 並上傳到 GitHub，<br>之後更新網頁外觀時內容不會消失。</p>
+      <button class="btn-cm-primary" onclick="exportContentJson();closeContentManager()">
+        📥 匯出 content.json
+      </button>
+    </div>
+
+    <div class="cm-divider"></div>
+
+    <div class="cm-section">
+      <div class="cm-section-title">🔄 同步最新內容</div>
+      <p class="cm-desc">如果你已更新 GitHub 上的 <code>content.json</code>，<br>清除本機暫存後重新載入，即可看到最新內容。</p>
+      <button class="btn-cm-secondary" onclick="clearLocalAndReload()">
+        🗑️ 清除暫存並重新載入
+      </button>
+    </div>
+
+    <div class="cm-divider"></div>
+
+    <div class="cm-section cm-steps">
+      <div class="cm-section-title">📋 完整流程說明</div>
+      <div class="cm-step"><span class="cm-num">1</span>在網站上編輯所有內容</div>
+      <div class="cm-step"><span class="cm-num">2</span>點「匯出 content.json」下載檔案</div>
+      <div class="cm-step"><span class="cm-num">3</span>到 GitHub 上傳 <code>content.json</code>（和 index.html 同目錄）</div>
+      <div class="cm-step"><span class="cm-num">4</span>之後只需更新 <code>index.html</code> 來修改外觀功能</div>
+      <div class="cm-step"><span class="cm-num">5</span>內容永遠從 <code>content.json</code> 讀取，不會被覆蓋</div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeContentManager()">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- 影片播放 Modal -->
+<div class="video-modal-bg" id="video-modal" onclick="if(event.target===this)closeVideoModal()">
+  <div class="video-modal-inner">
+    <button class="video-modal-close" onclick="closeVideoModal()">✕</button>
+    <iframe id="video-modal-frame" class="video-modal-frame" allowfullscreen
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+    </iframe>
+  </div>
+</div>
+
+<script>
+  let guides = [];
+  let catIcons = {}; // 分類名稱 → emoji icon
+  let currentGuide = null;
+  let stepCounter = {};
+
+  // ── 範例預設資料 ──
+  const defaultGuides = [
+    {
+      id: 'guide-lianzheng',
+      title: '聯徵報告申請',
+      category: '金融信用',
+      desc: '透過金融聯合徵信中心查詢個人信用報告，了解自身信用狀況',
+      steps: [
+        { id: 'lz-s1', title: '選擇申請方式', body: '聯徵報告可透過三種方式申請：①網路申辦（JCIC 官網）②臨櫃申辦（聯徵中心或合作金融機構）③郵寄申辦。建議首次使用者至臨櫃辦理，以便確認身分。' },
+        { id: 'lz-s2', title: '準備所需文件', body: '備妥身分證正本、第二身分證明文件（如駕照、健保卡）、申請費用（每次申請費 100 元，首次免費）。' },
+        { id: 'lz-s3', title: '填寫申請書並提出申請', body: '至服務窗口取得申請書，填寫姓名、身分證字號、出生年月日、聯絡電話及申請用途。確認資料無誤後，交由承辦人員審核。' },
+        { id: 'lz-s4', title: '身分驗證', body: '工作人員將核對您的身分證件，並確認您是否本人申請。委託他人辦理時，需提供授權書及雙方身分證件。' },
+        { id: 'lz-s5', title: '繳費並取得報告', body: '繳清費用後，報告通常當場列印提供。網路申辦者會在 2～3 個工作日內寄送至留存地址，或以 Email 通知下載。' },
+      ],
+      table: {
+        headers: ['項目', '說明', '是否必備'],
+        rows: [
+          ['身分證', '正本', '必備'],
+          ['第二證件', '駕照、健保卡擇一', '必備'],
+          ['申請費', '100元（首次免費）', '必備'],
+          ['授權書', '委託他人辦理時', '視情況'],
+          ['受委託人身分證', '委託辦理時需提供', '視情況'],
+        ]
+      }
+    },
+    {
+      id: 'guide-laobao',
+      title: '勞保明細查詢',
+      category: '勞動保險',
+      desc: '查詢個人勞保投保明細、年資及保費繳納紀錄',
+      steps: [
+        { id: 'lb-s1', title: '選擇查詢管道', body: '可透過以下方式查詢：①勞動部勞保局 e 化服務系統（網路）②勞保局各地服務處（臨櫃）③自然人憑證線上查詢。建議使用 e 化系統最便捷。' },
+        { id: 'lb-s2', title: '登入勞保局 e 化服務系統', body: '前往 https://edesk.bli.gov.tw，點選「個人申辦」。首次使用需以健保卡讀卡機或行動自然人憑證（MOICA）進行身分驗證。' },
+        { id: 'lb-s3', title: '查詢投保明細', body: '登入後點選「勞工保險」→「投保資料查詢」，即可查看目前投保單位、投保薪資、加退保日期等完整紀錄。' },
+        { id: 'lb-s4', title: '下載或列印明細', body: '選擇所需期間，點選「列印」或「下載 PDF」即可取得正式投保明細書。如需加蓋機關章，請至勞保局臨櫃申請核章版本。' },
+      ],
+      table: {
+        headers: ['查詢方式', '所需工具', '費用'],
+        rows: [
+          ['e化服務系統', '自然人憑證 / 健保卡讀卡機', '免費'],
+          ['臨櫃申辦', '身分證正本', '免費'],
+          ['郵寄申辦', '申請書＋身分證影本', '免費'],
+          ['加蓋章版本', '臨櫃申辦', '免費'],
+        ]
+      }
+    },
+    {
+      id: 'guide-caichan',
+      title: '財產清冊申請',
+      category: '稅務',
+      desc: '透過財政部稅務入口網查詢個人名下財產狀況',
+      steps: [
+        { id: 'cc-s1', title: '前往財政部稅務入口網', body: '開啟瀏覽器，前往「財政部稅務入口網」(https://www.etax.nat.gov.tw)，點選「個人憑證登入」進行身分驗證。' },
+        { id: 'cc-s2', title: '身分驗證登入', body: '使用自然人憑證（插入讀卡機）或行動自然人憑證 App（掃描 QR Code）登入。若無憑證，可至國稅局臨櫃申辦。' },
+        { id: 'cc-s3', title: '查詢財產資料', body: '登入後點選「財產資料查詢」，選擇欲查詢的年度，系統將列出名下不動產、動產（車輛）、股票等財產清單。' },
+        { id: 'cc-s4', title: '列印或下載財產清冊', body: '確認資料無誤後，點選「列印」輸出財產清冊。如需機關核章版，請持身分證至各地國稅局申請蓋章。' },
+      ],
+      table: {
+        headers: ['申辦方式', '需備證件', '備註'],
+        rows: [
+          ['網路（自然人憑證）', '晶片讀卡機＋憑證', '最便利'],
+          ['網路（行動憑證）', 'MOICA App', '需先申請'],
+          ['國稅局臨櫃', '身分證正本', '可取蓋章版'],
+          ['委託代辦', '委託書＋雙方身分證', '需授權'],
+        ]
+      }
+    },
+    {
+      id: 'guide-suode',
+      title: '所得清單申請',
+      category: '稅務',
+      desc: '查詢個人歷年所得資料，常用於申辦貸款、租屋等用途',
+      steps: [
+        { id: 'sd-s1', title: '登入財政部電子申報系統', body: '前往「財政部稅務入口網」，使用自然人憑證或行動自然人憑證登入。亦可直接至各地國稅局臨櫃申辦。' },
+        { id: 'sd-s2', title: '選擇查詢年度', body: '進入「所得資料查詢」，選擇欲查詢的課稅年度（通常為前一年度）。系統提供近五年所得資料查詢。' },
+        { id: 'sd-s3', title: '確認所得項目', body: '查詢結果將顯示各類所得：薪資所得、執行業務所得、利息所得、租賃所得、股利等，請確認資料完整。' },
+        { id: 'sd-s4', title: '列印所得清單', body: '點選「列印所得資料」，取得所得清單。若需蓋機關章，請持身分證至所在地國稅局申請。部分機構接受自行列印版本，請先確認對方要求。' },
+      ],
+      table: {
+        headers: ['所得類型', '開立單位', '備註'],
+        rows: [
+          ['薪資所得', '任職公司', '最常見類型'],
+          ['利息所得', '銀行/金融機構', '含存款利息'],
+          ['租賃所得', '申報人自行申報', '出租房屋'],
+          ['股利所得', '上市公司', '含現金股利'],
+          ['執行業務所得', '客戶/機構', '自由業者'],
+        ]
+      }
+    },
+    {
+      id: 'guide-hujiche',
+      title: '戶籍謄本申請',
+      category: '戶政',
+      desc: '至戶政事務所或網路申請戶籍謄本，用於各類公務申辦',
+      updatedDate: '2025/07/06',
+      contactPhone: '02-2321-2879（內政部戶政司）',
+      address: '請至住家戶籍所在地之戶政事務所',
+      links: [
+        { label: '內政部戶政司全球資訊網', url: 'https://www.ris.gov.tw' },
+        { label: '全國戶政事務所查詢', url: 'https://www.ris.gov.tw/app/portal/346' }
+      ],
+      steps: [
+        { id: 'hj-s1', title: '確認申請類型', body: '戶籍謄本分為「全戶戶籍謄本」與「個人戶籍謄本」。請依申辦用途確認所需類型，並確認是否需要加蓋認證章。' },
+        { id: 'hj-s2', title: '選擇申辦方式', body: '可臨櫃至任一戶政事務所辦理（跨所加收 10 元），或透過「戶政司全球資訊網」線上申辦後郵寄取件。' },
+        { id: 'hj-s3', title: '準備所需文件', body: '臨櫃辦理需備妥：身分證正本、印章（可以簽名代替）、申請費用。代理人需另備委託書及代理人身分證。' },
+        { id: 'hj-s4', title: '填寫申請書', body: '取得申請書，填寫申請人姓名、身分證字號、戶籍地址、申請份數及用途。請確認各欄位填寫完整。' },
+        { id: 'hj-s5', title: '繳費取件', body: '每份 15 元，當場取件。如跨所辦理，每份加收 10 元作業費。請確認份數及謄本內容正確無誤。' },
+      ],
+      table: {
+        headers: ['項目', '說明', '是否必備'],
+        rows: [
+          ['身分證', '正本', '必備'],
+          ['申請費', '每份 15 元（跨所 +10 元）', '必備'],
+          ['印章', '私章或簽名均可', '擇一'],
+          ['委託書', '代理人辦理時', '視情況'],
+          ['代理人身分證', '代理辦理時', '視情況'],
+        ]
+      }
+    },
+    {
+      id: 'guide-jianbao',
+      title: '健保快易通查詢',
+      category: '健保',
+      desc: '透過健保快易通 App 查詢個人就醫紀錄、保費及投保資料',
+      steps: [
+        { id: 'jb-s1', title: '下載健保快易通 App', body: '至 Apple App Store 或 Google Play 搜尋「健保快易通」，下載並安裝官方應用程式（開發者為衛生福利部中央健康保險署）。' },
+        { id: 'jb-s2', title: '完成帳號註冊／登入', body: '開啟 App 後，點選「會員登入」。首次使用需以健保卡號＋身分證字號完成註冊，或使用自然人憑證、Taiwan FidO 登入。' },
+        { id: 'jb-s3', title: '查詢個人健保資料', body: '登入後可查詢：①就醫紀錄（門診、住院、藥品）②保費繳納狀況③投保金額及單位④健康存摺（含健檢報告）。' },
+        { id: 'jb-s4', title: '下載或列印所需資料', body: '選擇欲下載的資料項目，點選「匯出 PDF」或「列印」。如需官方核章文件，請至各地健保署服務中心臨櫃申辦。' },
+      ],
+      table: {
+        headers: ['查詢項目', '功能說明', '備註'],
+        rows: [
+          ['就醫紀錄', '門診、急診、住院記錄', '近3年'],
+          ['投保資料', '目前投保單位及金額', '即時更新'],
+          ['保費繳納', '應繳及已繳保費紀錄', '含滯納金'],
+          ['健康存摺', '健檢及疫苗紀錄', '需開通'],
+          ['藥品紀錄', '歷次用藥清單', '近3個月'],
+        ]
+      }
+    },
+    {
+      id: 'guide-fangwushui',
+      title: '房屋稅籍證明申請',
+      category: '稅務',
+      desc: '申請房屋稅籍證明文件，用於房屋買賣、貸款或各類行政申辦',
+      steps: [
+        { id: 'fw-s1', title: '確認申請用途', body: '房屋稅籍證明常用於：房屋買賣過戶、銀行貸款設定、水電申請及各類行政申辦。請先向申請機關確認所需版本（是否需要加蓋機關章）。' },
+        { id: 'fw-s2', title: '選擇申辦方式', body: '可至房屋所在地的地方稅務局（或稅捐稽徵處）臨櫃申辦，或透過各縣市政府財政局網路服務申請列印。' },
+        { id: 'fw-s3', title: '準備所需文件', body: '備妥：申請人身分證正本、房屋坐落地址（門牌號碼）、申請用途說明。若為他人名下房屋，需附屋主委託書及屋主身分證影本。' },
+        { id: 'fw-s4', title: '填寫申請書', body: '取得「房屋稅籍謄本申請書」，填寫：申請人姓名、身分證字號、房屋地址、申請份數及用途。確認填寫完整後送交窗口。' },
+        { id: 'fw-s5', title: '繳費取件', body: '繳付工本費（各縣市約 10～25 元不等），當場取件。取件後請核對房屋地址、稅籍號碼、面積等資訊是否正確。' },
+      ],
+      table: {
+        headers: ['項目', '說明', '備註'],
+        rows: [
+          ['身分證', '正本', '必備'],
+          ['房屋地址', '完整門牌號碼', '必備'],
+          ['申請費', '約 10～25 元（各縣市不同）', '現金'],
+          ['委託書', '非本人名下房屋', '需公證或認證'],
+          ['屋主身分證影本', '委託代辦時', '需附上'],
+        ]
+      }
+    },
+  ];
+
+  // ── 初始化 ──
+  window.onload = async () => {
+    // 預設分類圖示
+    catIcons = {
+      '金融信用': '💳', '勞動保險': '🛡️', '稅務': '📊',
+      '戶政': '🏠', '健保': '🏥', '其他': '📋', '地政': '🗺️'
+    };
+
+    // 優先順序：1) localStorage  2) content.json  3) 預設資料
+    const hasStored = loadFromStorage();
+    if (!hasStored) {
+      const loaded = await loadFromContentJson();
+      if (!loaded) {
+        guides = [...defaultGuides];
+      }
+    }
+
+    guides.forEach(g => stepCounter[g.id] = g.steps.length);
+    renderSidebar();
+    renderHomeCards();
+    guides.forEach(g => renderGuidePage(g));
+
+    // 唯讀模式
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('view') === '1') {
+      document.body.classList.add('view-only');
+    }
+
+    showSection('home');
+    showSaveStatus('');
+
+    // 監聽頁面關閉前自動儲存
+    window.addEventListener('beforeunload', saveToStorage);
+  };
+
+  function showSection(mode, id) {
+    const container = document.getElementById('guides-container');
+    const homeView = document.getElementById('home-view');
+
+    // 先淡出目前頁面
+    const fadeOut = (el) => {
+      el.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(6px)';
+    };
+    const fadeIn = (el) => {
+      el.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(10px)';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+      }));
+    };
+
+    // 淡出目前可見內容
+    if (homeView.style.display !== 'none') fadeOut(homeView);
+    container.querySelectorAll('.guide-page.active').forEach(p => fadeOut(p));
+
+    setTimeout(() => {
+      homeView.style.display = 'none';
+      container.querySelectorAll('.guide-page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+
+      if (mode === 'home') {
+        homeView.style.display = 'block';
+        fadeIn(homeView);
+      } else if (mode === 'guide' && id) {
+        const page = document.getElementById(id);
+        if (page) {
+          page.classList.add('active');
+          currentGuide = id;
+          fadeIn(page);
+        }
+        const sItem = document.querySelector(`.sidebar-item[data-id="${id}"]`);
+        if (sItem) sItem.classList.add('active');
+      }
+
+      // 捲回頁面頂部（桌機捲 main，手機捲 window）
+      const mainEl = document.querySelector('main');
+      if (mainEl) mainEl.scrollTop = 0;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // 更新手機 bar 標題
+      if (mode === 'home') {
+        updateMobileLabel('');
+      } else if (mode === 'guide' && id) {
+        const g = guides.find(g => g.id === id);
+        if (g) updateMobileLabel(g.title);
+      }
+
+    }, 180);
+  }
+
+  // ── 渲染側邊欄 ──
+  function renderSidebar() {
+    const list = document.getElementById('sidebar-list');
+    if (guides.length === 0) {
+      list.innerHTML = '<div style="padding:1rem 1.5rem;font-size:13px;color:var(--ink-light)">尚無教學頁面</div>';
+      return;
+    }
+    const cats = {};
+    guides.forEach(g => { if (!cats[g.category]) cats[g.category] = []; cats[g.category].push(g); });
+
+    list.innerHTML = '';
+    Object.entries(cats).forEach(([cat, items]) => {
+      // 分類標題列
+      const catRow = document.createElement('div');
+      catRow.className = 'sidebar-cat-row';
+
+      // icon 按鈕（點擊換圖示）
+      const catIconBtn = document.createElement('span');
+      catIconBtn.className = 'sidebar-cat-icon';
+      catIconBtn.textContent = catIcons[cat] || '📁';
+      catIconBtn.title = '點擊更換分類圖示';
+      catIconBtn.onclick = (e) => { e.stopPropagation(); openCatIconPicker(cat, catIconBtn); };
+
+      const catTitle = document.createElement('div');
+      catTitle.className = 'sidebar-section-title sidebar-cat-title';
+      catTitle.title = '雙擊修改分類名稱';
+      catTitle.dataset.cat = cat;
+      catTitle.textContent = cat;
+
+      const catDel = document.createElement('span');
+      catDel.className = 'sidebar-cat-del';
+      catDel.title = '刪除整個分類';
+      catDel.textContent = '✕';
+      catDel.onclick = (e) => { e.stopPropagation(); deleteCategory(cat); };
+      catTitle.ondblclick = (e) => { e.stopPropagation(); editSidebarCategory(catTitle, cat); };
+
+      catRow.appendChild(catIconBtn);
+      catRow.appendChild(catTitle);
+      catRow.appendChild(catDel);
+      list.appendChild(catRow);
+
+      // 教學項目
+      items.forEach(g => {
+        const item = document.createElement('div');
+        item.className = 'sidebar-item';
+        item.dataset.id = g.id;
+        item.onclick = () => showSection('guide', g.id);
+        item.innerHTML = `<span class="dot"></span>
+          <span class="sidebar-label" title="雙擊修改名稱">${g.title}</span>
+          <span class="sidebar-del" title="刪除此教學">✕</span>`;
+        item.querySelector('.sidebar-label').ondblclick = (e) => {
+          e.stopPropagation();
+          editSidebarTitle(item.querySelector('.sidebar-label'), g.id);
+        };
+        item.querySelector('.sidebar-del').onclick = (e) => {
+          e.stopPropagation();
+          deleteGuide(g.id);
+        };
+        list.appendChild(item);
+      });
+    });
+
+    // 同步更新手機抽屜
+    if (document.getElementById('mobile-drawer').classList.contains('open')) renderDrawer();
+  }
+
+  // ── 分類 Icon 選擇器 ──
+  let _catIconTarget = null;   // 目前正在選的分類名稱
+  let _catIconBtnEl = null;    // 對應的 DOM 按鈕元素
+
+  function openCatIconPicker(cat, btnEl) {
+    _catIconTarget = cat;
+    _catIconBtnEl = btnEl;
+    // 建立小浮窗
+    let picker = document.getElementById('cat-icon-picker');
+    if (!picker) {
+      picker = document.createElement('div');
+      picker.id = 'cat-icon-picker';
+      picker.className = 'cat-icon-picker';
+      document.body.appendChild(picker);
+      // 點外面關閉
+      document.addEventListener('click', (e) => {
+        if (!picker.contains(e.target) && e.target !== _catIconBtnEl) closeCatIconPicker();
+      });
+    }
+    picker.innerHTML = '';
+    // 常用分類圖示列表
+    const CAT_ICONS = [
+      '📁','📂','🗂️','📋','📌','📎','📝','📄','📊','📈','📉','🗃️',
+      '🏠','🏢','🏦','🏥','🏛️','🏗️','🌐','🗺️','📍','🏘️',
+      '💳','💰','💵','🏧','💹','🪙','💎','📑',
+      '🛡️','🔐','🔒','🔑','⚖️','🎯','✅','☑️',
+      '👤','👥','👨‍💼','🧑‍💻','🤝','📡','⚙️','🔧',
+      '❤️','🧡','💛','💚','💙','💜','⭐','🌟','✨','🔥',
+      '1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','🅰️','🆔','🆕',
+    ];
+    CAT_ICONS.forEach(ic => {
+      const btn = document.createElement('button');
+      btn.className = 'cat-icon-opt';
+      btn.textContent = ic;
+      if (ic === (catIcons[cat] || '')) btn.classList.add('selected');
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        catIcons[_catIconTarget] = ic;
+        if (_catIconBtnEl) _catIconBtnEl.textContent = ic;
+        closeCatIconPicker();
+        showToast('✅ 分類圖示已更新');
+      };
+      picker.appendChild(btn);
+    });
+    // 定位在按鈕旁邊
+    const rect = btnEl.getBoundingClientRect();
+    picker.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+    picker.style.left = (rect.left + window.scrollX) + 'px';
+    picker.classList.add('open');
+  }
+
+  function closeCatIconPicker() {
+    const picker = document.getElementById('cat-icon-picker');
+    if (picker) picker.classList.remove('open');
+    _catIconTarget = null;
+    _catIconBtnEl = null;
+  }
+
+  function deleteCategory(cat) {
+    const count = guides.filter(g => g.category === cat).length;
+    if (!confirm(`確定要刪除分類「${cat}」及其下 ${count} 個教學嗎？此操作無法還原。`)) return;
+    const toDelete = guides.filter(g => g.category === cat).map(g => g.id);
+    toDelete.forEach(id => {
+      guides = guides.filter(g => g.id !== id);
+      const page = document.getElementById(id);
+      if (page) page.remove();
+    });
+    renderSidebar();
+    renderHomeCards();
+    showSection('home');
+    showToast(`🗑️ 已刪除分類「${cat}」`);
+  }
+
+  function editSidebarTitle(el, guideId) {
+    const old = el.textContent;
+    el.contentEditable = 'true';
+    el.style.outline = '1px solid var(--accent)';
+    el.style.borderRadius = '3px';
+    el.style.padding = '1px 4px';
+    el.focus();
+    const finish = () => {
+      el.contentEditable = 'false';
+      el.style.outline = '';
+      el.style.padding = '';
+      const newTitle = el.textContent.trim() || old;
+      el.textContent = newTitle;
+      const guide = guides.find(g => g.id === guideId);
+      if (guide) {
+        guide.title = newTitle;
+        const page = document.getElementById(guideId);
+        if (page) page.querySelector('.page-title').textContent = newTitle;
+        renderHomeCards();
+      }
+      showToast('✅ 名稱已更新');
+    };
+    el.onblur = finish;
+    el.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } };
+  }
+
+  function editSidebarCategory(el, oldCat) {
+    el.contentEditable = 'true';
+    el.style.outline = '1px solid var(--gold)';
+    el.style.borderRadius = '3px';
+    el.focus();
+    const finish = () => {
+      const newCat = el.textContent.trim() || oldCat;
+      el.contentEditable = 'false';
+      el.style.outline = '';
+      el.textContent = newCat;
+      guides.forEach(g => { if (g.category === oldCat) g.category = newCat; });
+      showToast('✅ 分類名稱已更新');
+    };
+    el.onblur = finish;
+    el.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } };
+  }
+
+  function deleteGuide(guideId) {
+    if (!confirm('確定要刪除此教學頁面嗎？')) return;
+    guides = guides.filter(g => g.id !== guideId);
+    const page = document.getElementById(guideId);
+    if (page) page.remove();
+    renderSidebar();
+    renderHomeCards();
+    showSection('home');
+    showToast('🗑️ 已刪除教學頁面');
+  }
+
+  // ── 渲染首頁卡片 ──
+  function renderHomeCards() {
+    const container = document.getElementById('guide-cards');
+    const empty = document.getElementById('empty-home');
+    if (guides.length === 0) { container.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    container.innerHTML = guides.map(g => `
+      <div onclick="showSection('guide','${g.id}')" style="background:white;border:1px solid var(--border);border-radius:12px;padding:1.2rem;cursor:pointer;transition:all 0.2s;box-shadow:var(--shadow);" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform=''">
+        <div style="font-size:2rem;margin-bottom:8px">${g.icon || '📋'}</div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:6px">${g.category}</div>
+        <div style="font-weight:700;font-size:15px;margin-bottom:8px;color:var(--ink)">${g.title}</div>
+        <div style="font-size:13px;color:var(--ink-light);line-height:1.6">${g.desc}</div>
+        <div style="margin-top:12px;font-size:12px;color:var(--ink-light)">${g.icon || '📋'} ${g.steps.length} 個步驟</div>
+      </div>
+    `).join('');
+  }
+
+  // ── 渲染教學頁面 ──
+  function renderGuidePage(guide) {
+    const container = document.getElementById('guides-container');
+    const existing = document.getElementById(guide.id);
+    if (existing) existing.remove();
+
+    const stepsHtml = guide.steps.map((s, i) => buildStepHtml(s, i + 1, guide.id)).join('');
+    const tableHtml = buildTableHtml(guide);
+
+    const div = document.createElement('div');
+    div.className = 'guide-page';
+    div.id = guide.id;
+    div.innerHTML = `
+      <div class="page-header">
+        <div class="page-title-group">
+          <div class="page-category" data-guide-id="${guide.id}">${guide.category}</div>
+          <div class="page-title">
+            <span class="page-title-icon" onclick="openPageIconPicker('${guide.id}')" title="點擊換圖示（編輯模式）">${guide.icon||'📋'}</span>
+            <span class="page-title-text" ondblclick="editPageTitle(this,'${guide.id}')">${guide.title}</span>
+          </div>
+          <div class="page-meta">
+            <span>📋 ${guide.steps.length} 個步驟</span>
+            <span class="updated-date" onclick="editUpdatedDate('${guide.id}')" title="點擊修改日期（編輯模式）">🕓 最後更新：<span id="updated-date-text-${guide.id}">${guide.updatedDate || '尚未設定'}</span></span>
+            <span class="edit-badge">編輯模式</span>
+          </div>
+        </div>
+        <div class="page-actions">
+          <button class="btn-undo" id="undo-btn-${guide.id}" onclick="undoEdit('${guide.id}')" title="復原上一步" disabled>↩ 上一步</button>
+          <button class="btn-redo" id="redo-btn-${guide.id}" onclick="redoEdit('${guide.id}')" title="重做下一步" disabled>下一步 ↪</button>
+          <button class="btn-edit" onclick="toggleEdit('${guide.id}')">✏️ 編輯</button>
+          <button class="btn-save" onclick="saveEdit('${guide.id}')">✅ 儲存</button>
+        </div>
+      </div>
+
+      <!-- 工具列 -->
+      <div class="toolbar-row">
+        <button class="btn-toolbar always-show" onclick="printGuide('${guide.id}')" title="列印此教學">🖨️ 列印</button>
+        <button class="btn-toolbar always-show" onclick="exportPDF('${guide.id}')" title="儲存為 PDF">📥 存成 PDF</button>
+        <button class="btn-toolbar" onclick="duplicateGuide('${guide.id}')" title="複製此教學">📋 複製教學</button>
+        <button class="btn-toolbar always-show" id="progress-toggle-${guide.id}" onclick="toggleProgressMode('${guide.id}')" title="進度追蹤模式">✅ 進度追蹤</button>
+      </div>
+
+      <!-- 進度條（進度追蹤模式下顯示）-->
+      <div class="progress-bar-wrap" id="progress-wrap-${guide.id}" style="display:none">
+        <div class="progress-bar-label">
+          <span>辦理進度</span>
+          <span id="progress-text-${guide.id}">0 / ${guide.steps.length} 步驟完成</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill-${guide.id}" style="width:0%"></div></div>
+      </div>
+
+      <div class="info-card notice">
+        <div class="card-icon">⚠️</div>
+        <div class="card-body">
+          <div class="card-title notice-title" contenteditable="false">注意事項</div>
+          <p class="notice-body" contenteditable="false">辦理前請確認攜帶所有必要文件，以免往返奔波。如有疑問請洽詢相關機關。</p>
+        </div>
+      </div>
+
+      <h2 style="font-family:'Noto Serif TC',serif;font-size:1.1rem;margin:2rem 0 1rem;color:var(--ink)">📌 申辦步驟</h2>
+      <div class="steps-container" id="steps-${guide.id}">${stepsHtml}</div>
+      <button class="add-step-btn" onclick="addStep('${guide.id}')">＋ 新增步驟</button>
+
+      <!-- 所需文件清單 -->
+      <div class="table-section" id="table-section-${guide.id}">
+        <div class="section-header-row">
+          <div class="table-section-title">
+            <span class="section-title-text" contenteditable="false" ondblclick="this.contentEditable='true';this.focus()" onblur="this.contentEditable='false'">📄 所需文件清單</span>
+            <span class="tag tag-required">必備</span>
+          </div>
+          <button class="btn-remove-section" onclick="removeSectionWithRestore('table-section-${guide.id}', 'add-table-btn-${guide.id}')" title="移除文件清單區塊">✕ 移除區塊</button>
+        </div>
+        <div id="table-wrap-${guide.id}">${tableHtml}</div>
+        <div class="table-controls">
+          <button class="btn-table" onclick="addTableRow('${guide.id}')">＋ 新增列</button>
+          <button class="btn-table" onclick="addTableCol('${guide.id}')">＋ 新增欄</button>
+        </div>
+      </div>
+      <!-- 文件清單移除後的新增按鈕 -->
+      <button class="btn-restore-section" id="add-table-btn-${guide.id}" style="display:none" onclick="restoreTableSection('${guide.id}')">📄 ＋ 新增文件清單區塊</button>
+
+      <!-- 相關連結 / 聯絡資訊 -->
+      <div class="info-links-card" id="links-section-${guide.id}">
+        <div class="info-links-title">🔗 相關連結與洽詢資訊</div>
+        <div id="links-list-${guide.id}"></div>
+        <button class="btn-add-link" onclick="addLinkItem('${guide.id}')">＋ 新增連結</button>
+        <div style="height:8px"></div>
+        <div class="contact-row">
+          📞 洽詢電話：
+          <span class="contact-editable" id="contact-phone-${guide.id}" contenteditable="false">${guide.contactPhone || '（尚未設定）'}</span>
+        </div>
+        <div class="contact-row">
+          📍 辦理地點：
+          <span class="contact-editable" id="contact-address-${guide.id}" contenteditable="false">${guide.address || '（尚未設定）'}</span>
+          <a href="#" onclick="event.preventDefault();openMapForGuide('${guide.id}')" style="font-size:12px;color:var(--blue)">在地圖上查看 →</a>
+        </div>
+      </div>
+
+      <!-- 常見問題 -->
+      <div class="faq-section" id="faq-section-${guide.id}">
+        <div class="section-header-row">
+          <h2 class="faq-section-title" contenteditable="false" ondblclick="this.contentEditable='true';this.focus()" onblur="this.contentEditable='false'" style="font-family:'Noto Serif TC',serif;font-size:1.1rem;color:var(--ink);outline:none">❓ 常見問題</h2>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button class="btn-add-faq" onclick="addFaqItem('${guide.id}')">＋ 新增問題</button>
+            <button class="btn-remove-section" onclick="removeSectionWithRestore('faq-section-${guide.id}','add-faq-btn-${guide.id}')" title="移除常見問題區塊">✕ 移除區塊</button>
+          </div>
+        </div>
+        <div class="faq-list" id="faq-list-${guide.id}">
+          <div class="faq-item" data-guide="${guide.id}">
+            <div class="faq-question-row" onclick="toggleFaq(this.closest('\.faq-item'))">
+              <div class="faq-question-text" contenteditable="false">可以委託他人代辦嗎？</div>
+              <div class="faq-controls">
+                <span class="faq-toggle-btn">＋</span>
+                <button class="btn-del-faq" onclick="event.stopPropagation();this.closest('.faq-item').remove();showToast('🗑️ 已刪除問題')" title="刪除此問題">✕</button>
+              </div>
+            </div>
+            <div class="faq-answer" contenteditable="false">可以，但需提供委託人身分證影本及委託書，以及受委託人的身分證正本。</div>
+          </div>
+          <div class="faq-item" data-guide="${guide.id}">
+            <div class="faq-question-row" onclick="toggleFaq(this.closest('\.faq-item'))">
+              <div class="faq-question-text" contenteditable="false">申請多久可以取件？</div>
+              <div class="faq-controls">
+                <span class="faq-toggle-btn">＋</span>
+                <button class="btn-del-faq" onclick="event.stopPropagation();this.closest('.faq-item').remove();showToast('🗑️ 已刪除問題')" title="刪除此問題">✕</button>
+              </div>
+            </div>
+            <div class="faq-answer" contenteditable="false">一般現場申請當場即可取件。如有特殊情況需要審核，將另行通知。</div>
+          </div>
+          <div class="faq-item" data-guide="${guide.id}">
+            <div class="faq-question-row" onclick="toggleFaq(this.closest('\.faq-item'))">
+              <div class="faq-question-text" contenteditable="false">是否可以網路申請？</div>
+              <div class="faq-controls">
+                <span class="faq-toggle-btn">＋</span>
+                <button class="btn-del-faq" onclick="event.stopPropagation();this.closest('.faq-item').remove();showToast('🗑️ 已刪除問題')" title="刪除此問題">✕</button>
+              </div>
+            </div>
+            <div class="faq-answer" contenteditable="false">部分資料可透過政府服務網路平台申請，請至「內政部戶政司全球資訊網」查詢線上服務項目。</div>
+          </div>
+        </div>
+      </div>
+      <!-- 常見問題移除後的新增按鈕 -->
+      <button class="btn-restore-section" id="add-faq-btn-${guide.id}" style="display:none" onclick="restoreFaqSection('${guide.id}')">❓ ＋ 新增常見問題區塊</button>
+    `;
+    container.appendChild(div);
+    renderLinksSection(guide);
+  }
+
+  // ══════════════════════════════════════════════════
+  // ── 相關連結 ──
+  // ══════════════════════════════════════════════════
+  function renderLinksSection(guide) {
+    const list = document.getElementById('links-list-' + guide.id);
+    if (!list) return;
+    const links = guide.links || [];
+    if (links.length === 0) {
+      list.innerHTML = '<div style="font-size:12.5px;color:var(--ink-light)">尚未加入官方連結</div>';
+      return;
+    }
+    list.innerHTML = links.map((l, i) => `
+      <div class="link-item">
+        <span>🔗</span>
+        <a href="${l.url}" target="_blank" rel="noopener">${l.label}</a>
+        <button class="btn-del-link" onclick="removeLinkItem('${guide.id}',${i})" title="刪除連結">✕</button>
+      </div>
+    `).join('');
+  }
+
+  function addLinkItem(guideId) {
+    const label = prompt('連結名稱（例如：戶政司全球資訊網）：');
+    if (!label) return;
+    let url = prompt('網址（需含 https://）：', 'https://');
+    if (!url) return;
+    if (!/^https?:\/\//.test(url)) url = 'https://' + url;
+    const guide = guides.find(g => g.id === guideId);
+    if (!guide) return;
+    if (!guide.links) guide.links = [];
+    guide.links.push({ label, url });
+    renderLinksSection(guide);
+    autoSave();
+    showToast('✅ 已新增連結');
+  }
+
+  function removeLinkItem(guideId, idx) {
+    const guide = guides.find(g => g.id === guideId);
+    if (!guide || !guide.links) return;
+    guide.links.splice(idx, 1);
+    renderLinksSection(guide);
+    autoSave();
+    showToast('🗑️ 已刪除連結');
+  }
+
+  function saveContactInfo(guideId) {
+    const guide = guides.find(g => g.id === guideId);
+    if (!guide) return;
+    const phoneEl = document.getElementById('contact-phone-' + guideId);
+    const addrEl = document.getElementById('contact-address-' + guideId);
+    if (phoneEl) guide.contactPhone = phoneEl.textContent.trim();
+    if (addrEl) guide.address = addrEl.textContent.trim();
+  }
+
+  function openMapForGuide(guideId) {
+    const guide = guides.find(g => g.id === guideId);
+    const addr = guide && guide.address ? guide.address : '';
+    if (!addr || addr === '（尚未設定）') {
+      showToast('⚠️ 請先在編輯模式輸入辦理地點');
+      return;
+    }
+    window.open('https://www.google.com/maps/search/' + encodeURIComponent(addr), '_blank');
+  }
+
+  // ── 最後更新日期 ──
+  function editUpdatedDate(guideId) {
+    if (!document.body.classList.contains('editing')) return;
+    const guide = guides.find(g => g.id === guideId);
+    if (!guide) return;
+    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '/');
+    const input = prompt('請輸入更新日期（例如 2025/07/06），留空則自動填入今天：', guide.updatedDate || today);
+    if (input === null) return;
+    guide.updatedDate = input.trim() || today;
+    const el = document.getElementById('updated-date-text-' + guideId);
+    if (el) el.textContent = guide.updatedDate;
+    autoSave();
+    showToast('✅ 更新日期已設定');
+  }
+
+  // ── 免責聲明編輯 ──
+  function enableDisclaimerEdit(el) {
+    el.contentEditable = 'true';
+    el.focus();
+    el.onblur = () => { el.contentEditable = 'false'; };
+    el.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); el.blur(); } };
+  }
+
+  function buildStepHtml(step, num, guideId) {
+    const icon = step.icon || null;
+    const numDisplay = icon ? `<span style="font-size:1.2rem">${icon}</span>` : num;
+    return `
+      <div class="step-block" id="${step.id}" draggable="false"
+        ondragstart="stepDragStart(event,'${step.id}')"
+        ondragover="stepDragOver(event)"
+        ondrop="stepDrop(event,'${step.id}','${guideId}')"
+        ondragend="stepDragEnd(event)">
+        <div class="step-number step-num-clickable" onclick="openStepIconModal('${step.id}')" title="點擊更換圖示" style="position:relative">
+          ${numDisplay}
+          <span class="step-check" onclick="event.stopPropagation();toggleStepDone(this.closest('.step-block'),'${guideId}')" title="標記完成">✓</span>
+        </div>
+        <div class="step-content">
+          <div class="step-title-row">
+            <div class="step-title" data-field="title">${step.title}</div>
+            <button class="btn-del-step" onclick="deleteStep('${step.id}','${guideId}')" title="刪除此步驟">✕ 刪除步驟</button>
+          </div>
+          <div class="step-body" data-field="body">${step.body}</div>
+          <div class="step-media" id="media-${step.id}"></div>
+          <div class="step-media-controls">
+            <button class="btn-media" onclick="addImageBlock('${step.id}')">🖼️ 加入圖片</button>
+            <button class="btn-media" onclick="addVideoBlock('${step.id}')">▶️ 嵌入影片</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // 新增圖片區塊（獨立、可刪除）
+  function addImageBlock(stepId) {
+    const media = document.getElementById('media-' + stepId);
+    if (!media) return;
+    const blockId = 'imgblock-' + Date.now();
+    const wrap = document.createElement('div');
+    wrap.className = 'media-block';
+    wrap.id = blockId;
+    wrap.innerHTML = `
+      <button class="btn-del-media" onclick="document.getElementById('${blockId}').remove();showToast('🗑️ 已移除圖片')" title="移除此圖片">✕</button>
+      <div class="image-upload-zone" onclick="triggerUpload(this)">
+        <input type="file" accept="image/*" onchange="handleImageUpload(event, this.parentElement)">
+        <div class="upload-icon">🖼️</div>
+        <div style="font-weight:500;font-size:14px">點擊上傳圖片</div>
+        <div class="upload-hint">支援 JPG、PNG、GIF、WebP</div>
+        <div class="image-overlay">🔄 更換圖片</div>
+        <div class="resize-hint">⤡ 拖曳調整大小</div>
+      </div>`;
+    media.appendChild(wrap);
+    showToast('✅ 已新增圖片區塊');
+  }
+
+  // 新增 YouTube 影片區塊（縮圖卡片，點擊彈窗播放）
+  function addVideoBlock(stepId) {
+    const url = prompt('請貼上 YouTube 影片網址：', 'https://www.youtube.com/watch?v=');
+    if (!url) return;
+    const videoId = extractYouTubeId(url);
+    if (!videoId) { alert('無法辨識 YouTube 網址，請確認格式正確（支援 watch、youtu.be、shorts）。'); return; }
+    const media = document.getElementById('media-' + stepId);
+    if (!media) return;
+    const blockId = 'vidblock-' + Date.now();
+    const thumbUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+    const wrap = document.createElement('div');
+    wrap.className = 'media-block video-block';
+    wrap.id = blockId;
+    wrap.innerHTML = `
+      <button class="btn-del-media" onclick="document.getElementById('${blockId}').remove();showToast('🗑️ 已移除影片')" title="移除此影片">✕</button>
+      <div class="video-card" onclick="openVideoModal('${videoId}')">
+        <img class="video-thumb"
+          src="${thumbUrl}"
+          onerror="this.src='https://img.youtube.com/vi/${videoId}/hqdefault.jpg'"
+          alt="影片縮圖">
+        <div class="video-play-overlay">
+          <div class="video-play-btn">
+            <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+          </div>
+          <div style="color:white;font-size:12px;opacity:0.85">點擊播放影片</div>
+        </div>
+        <div class="video-title-bar">YouTube 影片</div>
+      </div>`;
+    media.appendChild(wrap);
+    showToast('✅ 已加入 YouTube 影片（點縮圖播放）');
+  }
+
+  function openVideoModal(videoId) {
+    const modal = document.getElementById('video-modal');
+    const frame = document.getElementById('video-modal-frame');
+    // Use privacy-enhanced mode (youtube-nocookie.com) to reduce restrictions
+    frame.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+    modal.classList.add('open');
+  }
+
+  function closeVideoModal() {
+    const modal = document.getElementById('video-modal');
+    const frame = document.getElementById('video-modal-frame');
+    modal.classList.remove('open');
+    // Stop video by clearing src
+    setTimeout(() => { frame.src = ''; }, 200);
+  }
+
+  function extractYouTubeId(url) {
+    const patterns = [
+      /[?&]v=([\w-]{11})/,
+      /youtu\.be\/([\w-]{11})/,
+      /youtube\.com\/embed\/([\w-]{11})/,
+      /youtube\.com\/shorts\/([\w-]{11})/
+    ];
+    for (const p of patterns) {
+      const m = url.match(p);
+      if (m) return m[1];
+    }
+    return null;
+  }
+
+  function deleteStep(stepId, guideId) {
+    const el = document.getElementById(stepId);
+    if (!el) return;
+    if (!confirm('確定要刪除此步驟嗎？')) return;
+    const guide = guides.find(g => g.id === guideId);
+    if (guide) guide.steps = guide.steps.filter(s => s.id !== stepId);
+    el.remove();
+    // Re-number remaining steps (preserve color/icon)
+    const container = document.getElementById('steps-' + guideId);
+    container.querySelectorAll('.step-block').forEach((block, i) => {
+      const n = block.querySelector('.step-number');
+      if (!n.dataset.customIcon) {
+        n.innerHTML = i + 1;
+        n.dataset.num = i + 1;
+      }
+    });
+    showToast('🗑️ 已刪除步驟');
+  }
+
+  function buildTableHtml(guide) {
+    const { headers, rows } = guide.table;
+    const thHtml = headers.map((h, i) => `
+      <th style="position:relative;min-width:80px;">
+        <span contenteditable="false">${h}</span>
+        <div class="col-resizer" onmousedown="startColResize(event,this)"></div>
+        <button class="btn-del-col" onclick="deleteTableCol('${guide.id}',${i})" title="刪除此欄">✕</button>
+      </th>`).join('');
+    const tbodyHtml = rows.map((r, ri) => `<tr>
+      ${r.map(c => `<td contenteditable="false">${c}</td>`).join('')}
+      <td class="row-del-cell"><button class="btn-del-row" onclick="deleteTableRow(this,'${guide.id}')" title="刪除此列">✕</button></td>
+    </tr>`).join('');
+    return `<table class="editable-table" id="tbl-${guide.id}" style="table-layout:fixed;width:100%">
+      <thead><tr>${thHtml}<th class="row-del-cell" style="width:36px;"></th></tr></thead>
+      <tbody>${tbodyHtml}</tbody>
+    </table>`;
+  }
+
+  function deleteTableRow(btn, guideId) {
+    const row = btn.closest('tr');
+    const tbl = document.getElementById('tbl-' + guideId);
+    if (tbl.tBodies[0].rows.length <= 1) { showToast('⚠️ 至少保留一列'); return; }
+    row.remove();
+    showToast('🗑️ 已刪除列');
+  }
+
+  function deleteTableCol(guideId, colIdx) {
+    const tbl = document.getElementById('tbl-' + guideId);
+    const colCount = tbl.tHead.rows[0].cells.length - 1; // -1 for del col
+    if (colCount <= 1) { showToast('⚠️ 至少保留一欄'); return; }
+    tbl.tHead.rows[0].deleteCell(colIdx);
+    Array.from(tbl.tBodies[0].rows).forEach(row => row.deleteCell(colIdx));
+    // Re-index delete buttons
+    Array.from(tbl.tHead.rows[0].cells).forEach((th, i) => {
+      const btn = th.querySelector('.btn-del-col');
+      if (btn) btn.setAttribute('onclick', `deleteTableCol('${guideId}',${i})`);
+    });
+    showToast('🗑️ 已刪除欄');
+  }
+
+  let _resizeCol = null, _resizeStartX = 0, _resizeStartW = 0;
+  function startColResize(e, handle) {
+    e.preventDefault();
+    _resizeCol = handle.closest('th');
+    _resizeStartX = e.clientX;
+    _resizeStartW = _resizeCol.offsetWidth;
+    document.onmousemove = ev => {
+      const newW = Math.max(60, _resizeStartW + ev.clientX - _resizeStartX);
+      _resizeCol.style.width = newW + 'px';
+    };
+    document.onmouseup = () => { document.onmousemove = null; document.onmouseup = null; _resizeCol = null; };
+  }
+
+  // ── 建立教學 ──
+  function createGuide() {
+    const title = document.getElementById('new-title').value.trim();
+    if (!title) { alert('請輸入教學名稱'); return; }
+    const id = 'guide-' + Date.now();
+    const catInput = document.getElementById('new-category').value.trim();
+    const guide = {
+      id,
+      title,
+      icon: document.getElementById('new-icon').value || '📋',
+      category: catInput || '其他',
+      desc: document.getElementById('new-desc').value || '點擊進入查看詳細教學步驟',
+      steps: [
+        { id: `${id}-s1`, title: '步驟一：準備', body: '請在此填寫步驟說明...', icon: null }
+      ],
+      table: {
+        headers: ['項目', '說明', '備註'],
+        rows: [['文件名稱', '說明', '備註']]
+      }
+    };
+    stepCounter[id] = 1;
+    guides.push(guide);
+    renderGuidePage(guide);
+    renderSidebar();
+    renderHomeCards();
+    closeModal();
+    showSection('guide', id);
+    autoSave();
+    showToast(`✅ 已建立「${title}」教學頁面`);
+    document.getElementById('new-title').value = '';
+    document.getElementById('new-category').value = '';
+    document.getElementById('new-desc').value = '';
+    document.getElementById('new-icon').value = '📋';
+    document.getElementById('icon-selected').textContent = '📋';
+  }
+
+  // ── 圖片上傳 ──
+  function triggerUpload(zone) {
+    if (!zone.classList.contains('has-image')) {
+      zone.querySelector('input[type=file]').click();
+    }
+  }
+  function handleImageUpload(event, zone) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      zone.innerHTML = `
+        <input type="file" accept="image/*" onchange="handleImageUpload(event,this.parentElement)" style="position:absolute;inset:0;opacity:0;cursor:pointer;z-index:2">
+        <img src="${e.target.result}" style="width:100%;height:100%;object-fit:contain;border-radius:8px;display:block">
+        <div class="image-overlay">🔄 更換圖片</div>
+        <div class="resize-hint">⤡ 拖曳調整大小</div>`;
+      zone.classList.add('has-image');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // ── 新增步驟 ──
+  function addStep(guideId) {
+    const guide = guides.find(g => g.id === guideId);
+    stepCounter[guideId] = (stepCounter[guideId] || 0) + 1;
+    const num = stepCounter[guideId];
+    const step = { id: `${guideId}-s${num}`, title: `步驟 ${num}`, body: '請在此填寫步驟說明...' };
+    guide.steps.push(step);
+
+    const stepsEl = document.getElementById(`steps-${guideId}`);
+    const div = document.createElement('div');
+    div.innerHTML = buildStepHtml(step, num, guideId);
+    stepsEl.appendChild(div.firstElementChild);
+    if (document.body.classList.contains('editing')) enableEditing(guideId, true);
+    showToast('✅ 已新增步驟');
+  }
+
+  // ── 表格操作 ──
+  function addTableRow(guideId) {
+    const tbl = document.getElementById(`tbl-${guideId}`);
+    const colCount = tbl.tHead.rows[0].cells.length - 1; // exclude del col
+    const tr = document.createElement('tr');
+    const isEditing = document.body.classList.contains('editing');
+    for (let i = 0; i < colCount; i++) {
+      const td = document.createElement('td');
+      td.textContent = '新增資料';
+      td.contentEditable = isEditing ? 'true' : 'false';
+      tr.appendChild(td);
+    }
+    const delTd = document.createElement('td');
+    delTd.className = 'row-del-cell';
+    delTd.innerHTML = `<button class="btn-del-row" onclick="deleteTableRow(this,'${guideId}')" title="刪除此列">✕</button>`;
+    tr.appendChild(delTd);
+    tbl.tBodies[0].appendChild(tr);
+    showToast('✅ 已新增一列');
+  }
+
+  function addTableCol(guideId) {
+    const tbl = document.getElementById(`tbl-${guideId}`);
+    const headerRow = tbl.tHead.rows[0];
+    const newColIdx = headerRow.cells.length - 1; // insert before del col
+    const isEditing = document.body.classList.contains('editing');
+    const th = document.createElement('th');
+    th.style.position = 'relative';
+    th.style.minWidth = '80px';
+    const span = document.createElement('span');
+    span.textContent = '欄位名稱';
+    span.contentEditable = isEditing ? 'true' : 'false';
+    const resizer = document.createElement('div');
+    resizer.className = 'col-resizer';
+    resizer.setAttribute('onmousedown', 'startColResize(event,this)');
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn-del-col';
+    delBtn.title = '刪除此欄';
+    delBtn.textContent = '✕';
+    delBtn.setAttribute('onclick', `deleteTableCol('${guideId}',${newColIdx})`);
+    th.appendChild(span); th.appendChild(resizer); th.appendChild(delBtn);
+    headerRow.insertBefore(th, headerRow.cells[newColIdx]);
+    Array.from(tbl.tBodies[0].rows).forEach(row => {
+      const td = document.createElement('td');
+      td.textContent = '資料';
+      td.contentEditable = isEditing ? 'true' : 'false';
+      row.insertBefore(td, row.cells[newColIdx]);
+    });
+    // Re-index all del buttons
+    Array.from(headerRow.cells).forEach((cell, i) => {
+      const btn = cell.querySelector('.btn-del-col');
+      if (btn) btn.setAttribute('onclick', `deleteTableCol('${guideId}',${i})`);
+    });
+    showToast('✅ 已新增一欄');
+  }
+
+  // ── 編輯模式 ──
+  function toggleEdit(guideId) {
+    document.body.classList.add('editing');
+    enableEditing(guideId, true);
+    // 啟用步驟拖曳
+    document.querySelectorAll(`#${guideId} .step-block`).forEach(b => b.draggable = true);
+    // 啟動復原/重做歷史紀錄
+    initHistory(guideId);
+    showToast('📝 已進入編輯模式，點選任何文字即可修改');
+  }
+
+  // ══════════════════════════════════════════════════
+  // ── 復原 / 重做（Undo / Redo）系統 ──
+  // ══════════════════════════════════════════════════
+  let _historyStore = {};   // { guideId: { stack:[html...], index:number, observer, timer, restoring } }
+
+  function initHistory(guideId) {
+    const page = document.getElementById(guideId);
+    if (!page) return;
+    const initialSnapshot = page.innerHTML;
+    _historyStore[guideId] = {
+      stack: [initialSnapshot],
+      index: 0,
+      observer: null,
+      timer: null,
+      restoring: false
+    };
+    startObserving(guideId);
+    updateUndoRedoButtons(guideId);
+  }
+
+  function startObserving(guideId) {
+    const page = document.getElementById(guideId);
+    const state = _historyStore[guideId];
+    if (!page || !state) return;
+    const observer = new MutationObserver(() => {
+      if (state.restoring) return; // 忽略復原造成的變動
+      clearTimeout(state.timer);
+      state.timer = setTimeout(() => pushHistory(guideId), 600);
+    });
+    observer.observe(page, { childList: true, subtree: true, characterData: true, attributes: true });
+    state.observer = observer;
+  }
+
+  function pushHistory(guideId) {
+    const page = document.getElementById(guideId);
+    const state = _historyStore[guideId];
+    if (!page || !state) return;
+    const snapshot = page.innerHTML;
+    // 若目前不在堆疊最上層，先截斷之後的重做紀錄
+    if (state.index < state.stack.length - 1) {
+      state.stack = state.stack.slice(0, state.index + 1);
+    }
+    // 避免與最後一筆重複
+    if (snapshot === state.stack[state.stack.length - 1]) return;
+    state.stack.push(snapshot);
+    // 限制最多 30 筆歷史，避免記憶體暴增
+    if (state.stack.length > 30) state.stack.shift();
+    state.index = state.stack.length - 1;
+    updateUndoRedoButtons(guideId);
+  }
+
+  function restoreSnapshot(guideId) {
+    const page = document.getElementById(guideId);
+    const state = _historyStore[guideId];
+    if (!page || !state) return;
+    state.restoring = true;
+    page.innerHTML = state.stack[state.index];
+    // 恢復編輯狀態相關的可編輯屬性（以防序列化遺漏）
+    enableEditing(guideId, true);
+    document.querySelectorAll(`#${guideId} .step-block`).forEach(b => b.draggable = true);
+    requestAnimationFrame(() => { state.restoring = false; });
+    updateUndoRedoButtons(guideId);
+  }
+
+  function undoEdit(guideId) {
+    const state = _historyStore[guideId];
+    if (!state || state.index <= 0) return;
+    state.index--;
+    restoreSnapshot(guideId);
+    showToast('↩ 已復原上一步');
+  }
+
+  function redoEdit(guideId) {
+    const state = _historyStore[guideId];
+    if (!state || state.index >= state.stack.length - 1) return;
+    state.index++;
+    restoreSnapshot(guideId);
+    showToast('↪ 已重做下一步');
+  }
+
+  function updateUndoRedoButtons(guideId) {
+    const state = _historyStore[guideId];
+    const undoBtn = document.getElementById('undo-btn-' + guideId);
+    const redoBtn = document.getElementById('redo-btn-' + guideId);
+    if (!state) return;
+    if (undoBtn) undoBtn.disabled = state.index <= 0;
+    if (redoBtn) redoBtn.disabled = state.index >= state.stack.length - 1;
+  }
+
+  function stopHistory(guideId) {
+    const state = _historyStore[guideId];
+    if (state && state.observer) state.observer.disconnect();
+    delete _historyStore[guideId];
+  }
+
+  // 鍵盤快捷鍵：編輯模式下 Ctrl/Cmd+Z 復原，Ctrl/Cmd+Shift+Z 或 Ctrl+Y 重做
+  document.addEventListener('keydown', (e) => {
+    if (!document.body.classList.contains('editing')) return;
+    if (!currentGuide || !_historyStore[currentGuide]) return;
+    const isMac = navigator.platform.toUpperCase().includes('MAC');
+    const modKey = isMac ? e.metaKey : e.ctrlKey;
+    if (!modKey) return;
+    if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undoEdit(currentGuide); }
+    else if ((e.key === 'z' && e.shiftKey) || e.key === 'y') { e.preventDefault(); redoEdit(currentGuide); }
+  });
+
+  function enableEditing(guideId, on) {
+    const page = document.getElementById(guideId);
+    page.querySelectorAll('.step-title, .step-body').forEach(el => el.contentEditable = on ? 'true' : 'false');
+    // notice card
+    page.querySelectorAll('.notice-title, .notice-body').forEach(el => el.contentEditable = on ? 'true' : 'false');
+    // FAQ 問題與解答
+    page.querySelectorAll('.faq-question-text, .faq-answer').forEach(el => el.contentEditable = on ? 'true' : 'false');
+    // 區塊標題
+    page.querySelectorAll('.section-title-text, .faq-section-title').forEach(el => el.contentEditable = on ? 'true' : 'false');
+    // 聯絡資訊 / 地址
+    page.querySelectorAll('.contact-editable').forEach(el => el.contentEditable = on ? 'true' : 'false');
+    const tbl = document.getElementById(`tbl-${guideId}`);
+    if (tbl) {
+      tbl.querySelectorAll('td').forEach(td => { if (!td.classList.contains('row-del-cell')) td.contentEditable = on ? 'true' : 'false'; });
+      tbl.querySelectorAll('th span').forEach(span => span.contentEditable = on ? 'true' : 'false');
+    }
+  }
+
+  function saveEdit(guideId) {
+    document.body.classList.remove('editing');
+    enableEditing(guideId, false);
+    saveContactInfo(guideId);
+    // 停用步驟拖曳
+    document.querySelectorAll(`#${guideId} .step-block`).forEach(b => b.draggable = false);
+    // 停止並清除歷史紀錄
+    stopHistory(guideId);
+    autoSave();
+    showToast('✅ 已儲存所有修改');
+  }
+
+  // ── 字體與字型大小工具 ──
+  let _activeEditEl = null;
+
+  document.addEventListener('selectionchange', () => {
+    if (!document.body.classList.contains('editing')) return;
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+      const node = sel.anchorNode;
+      // Find closest editable parent
+      const el = node && node.nodeType === 3 ? node.parentElement : node;
+      if (el && el.isContentEditable) {
+        _activeEditEl = el;
+        // Reflect current computed style in toolbar
+        const cs = window.getComputedStyle(el);
+        document.getElementById('tb-size').value = Math.round(parseFloat(cs.fontSize)) || 15;
+      }
+    }
+  });
+
+  function applyFont(font) {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) {
+      // Apply to whole element
+      if (_activeEditEl) _activeEditEl.style.fontFamily = font;
+      return;
+    }
+    document.execCommand('fontName', false, font);
+  }
+
+  function applySize(size) {
+    size = parseInt(size);
+    if (!size || size < 8 || size > 80) return;
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) {
+      if (_activeEditEl) _activeEditEl.style.fontSize = size + 'px';
+      return;
+    }
+    // Wrap selection in a span with font-size
+    const range = sel.getRangeAt(0);
+    const span = document.createElement('span');
+    span.style.fontSize = size + 'px';
+    try { range.surroundContents(span); } catch(e) {
+      // fallback: apply to element
+      if (_activeEditEl) _activeEditEl.style.fontSize = size + 'px';
+    }
+    sel.removeAllRanges();
+  }
+
+  function applyBold() {
+    document.execCommand('bold', false, null);
+  }
+
+  function applyItalic() {
+    document.execCommand('italic', false, null);
+  }
+
+  // ── FAQ 開合 ──
+  function toggleFaq(item) {
+    item.classList.toggle('open');
+    const btn = item.querySelector('.faq-toggle-btn');
+    if (btn) btn.textContent = item.classList.contains('open') ? '－' : '＋';
+  }
+
+  // ── 新增 FAQ 問題 ──
+  function addFaqItem(guideId) {
+    const list = document.getElementById('faq-list-' + guideId);
+    if (!list) return;
+    const item = document.createElement('div');
+    item.className = 'faq-item';
+    item.dataset.guide = guideId;
+    const isEditing = document.body.classList.contains('editing');
+    item.innerHTML = `
+      <div class="faq-question-row" onclick="toggleFaq(this.closest('\.faq-item'))">
+        <div class="faq-question-text" contenteditable="${isEditing}">請輸入問題標題</div>
+        <div class="faq-controls">
+          <span class="faq-toggle-btn">＋</span>
+          <button class="btn-del-faq" onclick="event.stopPropagation();this.closest('.faq-item').remove();showToast('🗑️ 已刪除問題')" title="刪除此問題">✕</button>
+        </div>
+      </div>
+      <div class="faq-answer" contenteditable="${isEditing}">請輸入問題解答內容。</div>`;
+    list.appendChild(item);
+    // 展開並 focus 到問題標題
+    item.classList.add('open');
+    item.querySelector('.faq-question-text').focus();
+    showToast('✅ 已新增問題');
+  }
+
+  // ── 移除區塊（移除後顯示新增按鈕）──
+  function removeSectionWithRestore(sectionId, restoreBtnId) {
+    if (!confirm('確定要移除此區塊嗎？')) return;
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.style.transition = 'opacity 0.2s, transform 0.2s';
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(-6px)';
+      setTimeout(() => {
+        el.style.display = 'none';
+        // 顯示新增按鈕
+        const restoreBtn = document.getElementById(restoreBtnId);
+        if (restoreBtn) restoreBtn.style.display = 'flex';
+      }, 200);
+      showToast('🗑️ 已移除區塊，可點按鈕重新加入');
+    }
+  }
+
+  // ── 還原文件清單區塊 ──
+  function restoreTableSection(guideId) {
+    const section = document.getElementById('table-section-' + guideId);
+    const btn = document.getElementById('add-table-btn-' + guideId);
+    if (section) {
+      section.style.display = '';
+      section.style.opacity = '0';
+      section.style.transform = 'translateY(6px)';
+      section.style.transition = 'opacity 0.25s, transform 0.25s';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        section.style.opacity = '1';
+        section.style.transform = 'translateY(0)';
+      }));
+    }
+    if (btn) btn.style.display = 'none';
+    showToast('✅ 已重新加入文件清單區塊');
+  }
+
+  // ── 還原常見問題區塊 ──
+  function restoreFaqSection(guideId) {
+    const section = document.getElementById('faq-section-' + guideId);
+    const btn = document.getElementById('add-faq-btn-' + guideId);
+    if (section) {
+      section.style.display = '';
+      section.style.opacity = '0';
+      section.style.transform = 'translateY(6px)';
+      section.style.transition = 'opacity 0.25s, transform 0.25s';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        section.style.opacity = '1';
+        section.style.transform = 'translateY(0)';
+      }));
+    }
+    if (btn) btn.style.display = 'none';
+    showToast('✅ 已重新加入常見問題區塊');
+  }
+
+  // ── 舊版 removeSection（保留相容）──
+  function removeSection(sectionId) {
+    removeSectionWithRestore(sectionId, null);
+  }
+
+  // ── 手機抽屜下拉 ──
+  function isMobile() { return window.innerWidth <= 768; }
+
+  function renderDrawer() {
+    const inner = document.getElementById('drawer-inner');
+    if (!inner) return;
+    const cats = {};
+    guides.forEach(g => { if (!cats[g.category]) cats[g.category] = []; cats[g.category].push(g); });
+    let html = Object.entries(cats).map(([cat, items]) => `
+      <div class="drawer-cat">${cat}</div>
+      ${items.map(g => `
+        <div class="drawer-item${currentGuide === g.id ? ' active' : ''}" onclick="selectDrawerGuide('${g.id}')">
+          <span class="dot"></span>${g.title}
+        </div>`).join('')}
+    `).join('');
+    html += `<div class="drawer-add" onclick="closeDrawer();openModal()">＋ 新增教學</div>`;
+    inner.innerHTML = html;
+  }
+
+  function selectDrawerGuide(id) {
+    closeDrawer();
+    showSection('guide', id);
+  }
+
+  function toggleDrawer() {
+    const drawer = document.getElementById('mobile-drawer');
+    const backdrop = document.getElementById('drawer-backdrop');
+    const toggle = document.getElementById('mobile-nav-toggle');
+    const isOpen = drawer.classList.contains('open');
+    if (isOpen) {
+      closeDrawer();
+    } else {
+      renderDrawer();
+      drawer.classList.add('open');
+      backdrop.classList.add('open');
+      toggle.classList.add('open');
+    }
+  }
+
+  function closeDrawer() {
+    document.getElementById('mobile-drawer').classList.remove('open');
+    document.getElementById('drawer-backdrop').classList.remove('open');
+    const toggle = document.getElementById('mobile-nav-toggle');
+    if (toggle) toggle.classList.remove('open');
+  }
+
+  function updateMobileLabel(title) {
+    const label = document.getElementById('mobile-nav-label');
+    if (label) label.textContent = title ? '📄 ' + title : '📋 所有教學';
+  }
+
+
+  // ── 時鐘 ──
+  function updateClock() {
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const y = now.getFullYear();
+    const mo = pad(now.getMonth() + 1);
+    const d = pad(now.getDate());
+    const h = pad(now.getHours());
+    const mi = pad(now.getMinutes());
+    const s = pad(now.getSeconds());
+    const el = document.getElementById('header-clock');
+    if (el) el.textContent = `${y}/${mo}/${d}  ${h}:${mi}:${s}`;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ── 首頁編輯模式 ──
+  let _homeEditing = false;
+  function toggleHomeEdit() {
+    _homeEditing = true;
+    document.getElementById('home-edit-btn').style.display = 'none';
+    document.getElementById('home-save-btn').style.display = 'inline-block';
+    // 開啟所有首頁可編輯欄位
+    ['home-category', 'home-title-text', 'tip-title', 'tip-body'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.contentEditable = 'true'; el.style.outline = 'none'; }
+    });
+    // logo icon & site title
+    const logoIcon = document.getElementById('logo-icon');
+    const siteTitle = document.getElementById('site-title');
+    if (logoIcon) { logoIcon.style.cursor = 'pointer'; logoIcon.title = '點擊換 Logo 圖示'; logoIcon.onclick = (e) => { e.stopPropagation(); pickLogoIcon(); }; }
+    if (siteTitle) { siteTitle.contentEditable = 'true'; siteTitle.style.borderBottom = '2px dashed rgba(255,255,255,0.5)'; siteTitle.title = '雙擊編輯網站名稱'; }
+    // sidebar titles
+    document.querySelectorAll('.sidebar-cat-title').forEach(el => {
+      el.style.outline = '1px dashed var(--gold)';
+      el.style.borderRadius = '3px';
+    });
+    showToast('📝 首頁編輯模式：雙擊文字即可修改');
+  }
+
+  function saveHomeEdit() {
+    _homeEditing = false;
+    document.getElementById('home-edit-btn').style.display = 'inline-block';
+    document.getElementById('home-save-btn').style.display = 'none';
+    ['home-category', 'home-title-text', 'tip-title', 'tip-body'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.contentEditable = 'false'; el.style.borderBottom = ''; }
+    });
+    const siteTitle = document.getElementById('site-title');
+    if (siteTitle) { siteTitle.contentEditable = 'false'; siteTitle.style.borderBottom = ''; }
+    const logoIcon = document.getElementById('logo-icon');
+    if (logoIcon) { logoIcon.style.cursor = ''; logoIcon.title = ''; logoIcon.onclick = null; }
+    document.querySelectorAll('.sidebar-cat-title').forEach(el => {
+      el.style.outline = '';
+      el.style.borderRadius = '';
+    });
+    showToast('✅ 已儲存首頁設定');
+  }
+
+  function pickLogoIcon() {
+    // reuse the step icon modal with a callback
+    _pendingIcon = document.getElementById('logo-icon').textContent;
+    initStepColorGrid();
+    initStepIconGrid();
+    // Override confirm to apply to logo instead
+    _logoIconMode = true;
+    document.getElementById('step-icon-modal').classList.add('open');
+    document.getElementById('step-icon-preview').textContent = _pendingIcon;
+    document.getElementById('step-icon-preview').style.background = 'var(--ink)';
+  }
+  let _logoIconMode = false;
+
+  // ── 教學頁面大標題 icon 可點擊換 ──
+  function openPageIconPicker(guideId) {
+    if (!document.body.classList.contains('editing')) return;
+    _pendingIcon = null;
+    _pendingColor = null;
+    _logoIconMode = false;
+    _pageIconGuideId = guideId;
+    initStepColorGrid();
+    initStepIconGrid();
+    const guide = guides.find(g => g.id === guideId);
+    document.getElementById('step-icon-preview').textContent = guide ? (guide.icon || '📋') : '📋';
+    document.getElementById('step-icon-preview').style.background = 'var(--ink)';
+    document.getElementById('step-icon-modal').classList.add('open');
+  }
+  let _pageIconGuideId = null;
+
+  function editPageTitle(el, guideId) {
+    if (!document.body.classList.contains('editing')) return;
+    const old = el.textContent.trim();
+    el.contentEditable = 'true';
+    el.style.borderBottom = '2px dashed var(--accent)';
+    el.focus();
+    el.onblur = () => {
+      el.contentEditable = 'false';
+      el.style.borderBottom = '';
+      const newTitle = el.textContent.trim() || old;
+      const guide = guides.find(g => g.id === guideId);
+      if (guide) {
+        guide.title = newTitle;
+        renderSidebar();
+        renderHomeCards();
+      }
+      showToast('✅ 標題已更新');
+    };
+    el.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } };
+  }
+
+  // ── Icon Picker ──
+  const ALL_ICONS = ["📋", "📄", "📝", "📌", "📎", "🗂️", "📁", "🗃️", "🗄️", "📊", "📈", "📉", "🔖", "🏷️", "✅", "☑️", "❎", "🔴", "🟡", "🟢", "🔵", "🟣", "⭕", "❓", "❗", "💡", "⚠️", "🔔", "🔕", "🏠", "🏢", "🏦", "🏥", "🏛️", "🏗️", "🏘️", "🌐", "🗺️", "📍", "📮", "📬", "📭", "👤", "👥", "👨\u200d💼", "👩\u200d💼", "🧑\u200d💻", "👨\u200d⚕️", "👩\u200d⚕️", "👮", "🧑\u200d🏫", "👷", "🤝", "🫱", "🫲", "💰", "💳", "💵", "🏧", "💹", "🪙", "💎", "🏆", "🥇", "🎯", "🎖️", "🏅", "🔐", "🔒", "🔓", "🔑", "🗝️", "🛡️", "🔏", "📡", "🔭", "🔬", "🧪", "⚙️", "🔧", "🔨", "🛠️", "📱", "💻", "🖥️", "🖨️", "📠", "☎️", "📞", "📟", "🖱️", "⌨️", "💾", "📀", "💿", "🚗", "🚌", "🚎", "🚐", "🚑", "🚒", "✈️", "🚂", "🚢", "🛵", "🚲", "🛺", "📅", "📆", "🗓️", "⏰", "⏱️", "⌛", "🕐", "🗒️", "📓", "📔", "📒", "📕", "📗", "📘", "📙", "❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "💔", "💝", "💖", "💗", "💓", "💞", "💕", "⭐", "🌟", "✨", "💫", "🔥", "💥", "🌈", "☀️", "🌙", "🌊", "🍀", "🌸", "🌺", "🌻", "🌼", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "🅰️", "🅱️", "🆎", "🆑", "🆒", "🆓", "🆔", "🆕", "🆖", "🆗", "🆘", "🆙", "🆚"];
+
+  function initIconPicker() {
+    const grid = document.getElementById('icon-grid');
+    if (!grid || grid.children.length > 0) return;
+    ALL_ICONS.forEach(ic => {
+      const btn = document.createElement('button');
+      btn.className = 'icon-opt';
+      btn.textContent = ic;
+      btn.onclick = () => {
+        document.getElementById('new-icon').value = ic;
+        document.getElementById('icon-selected').textContent = ic;
+        grid.querySelectorAll('.icon-opt').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      };
+      grid.appendChild(btn);
+    });
+  }
+
+  function pickTipIcon() {
+    // Open a simple prompt for home tip icon
+    const ic = prompt('輸入一個 Emoji 作為圖示：', document.getElementById('tip-icon').textContent);
+    if (ic && ic.trim()) document.getElementById('tip-icon').textContent = ic.trim();
+  }
+
+  function enableHomeEdit(el) {
+    el.contentEditable = 'true';
+    el.style.borderBottom = '2px dashed var(--blue)';
+    el.focus();
+    el.onblur = () => { el.contentEditable = 'false'; el.style.borderBottom = ''; };
+    el.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); el.blur(); } };
+  }
+
+  // ── 步驟 Icon Modal ──
+  let _stepIconTargetId = null;
+  let _pendingIcon = null;   // 暫存選擇中的 icon
+  let _pendingColor = null;  // 暫存選擇中的底色
+  let _pendingTextColor = '#ffffff';
+
+  const STEP_COLORS = [
+    // 深色系（白字）
+    { bg: '#1a1a2e', text: '#ffffff', label: '深藍黑' },
+    { bg: '#2d3748', text: '#ffffff', label: '深灰藍' },
+    { bg: '#c8502a', text: '#ffffff', label: '磚紅' },
+    { bg: '#b8952a', text: '#ffffff', label: '金黃' },
+    { bg: '#2d6a4f', text: '#ffffff', label: '深綠' },
+    { bg: '#1d4e89', text: '#ffffff', label: '深藍' },
+    { bg: '#6b3fa0', text: '#ffffff', label: '紫色' },
+    { bg: '#c0392b', text: '#ffffff', label: '鮮紅' },
+    { bg: '#1a6b5a', text: '#ffffff', label: '青綠' },
+    { bg: '#7f5c3e', text: '#ffffff', label: '棕色' },
+    { bg: '#2c3e50', text: '#ffffff', label: '深板岩' },
+    { bg: '#4a235a', text: '#ffffff', label: '深紫' },
+    // 中色系
+    { bg: '#e74c3c', text: '#ffffff', label: '紅' },
+    { bg: '#e67e22', text: '#ffffff', label: '橙' },
+    { bg: '#f1c40f', text: '#333333', label: '黃' },
+    { bg: '#27ae60', text: '#ffffff', label: '綠' },
+    { bg: '#3498db', text: '#ffffff', label: '藍' },
+    { bg: '#9b59b6', text: '#ffffff', label: '紫' },
+    { bg: '#1abc9c', text: '#ffffff', label: '青' },
+    { bg: '#e91e8c', text: '#ffffff', label: '粉紅' },
+    // 淺色系（深字）
+    { bg: '#fdf5f2', text: '#c8502a', label: '淺磚' },
+    { bg: '#dbeafe', text: '#1d4e89', label: '淺藍' },
+    { bg: '#d8f3dc', text: '#2d6a4f', label: '淺綠' },
+    { bg: '#f5edce', text: '#b8952a', label: '淺金' },
+    { bg: '#f3e8ff', text: '#6b3fa0', label: '淺紫' },
+    { bg: '#fee2e2', text: '#c0392b', label: '淺紅' },
+    { bg: '#e0f2fe', text: '#0369a1', label: '天藍' },
+    { bg: '#fef9c3', text: '#854d0e', label: '奶黃' },
+    { bg: '#f0fdf4', text: '#166534', label: '薄荷' },
+    { bg: '#fff7ed', text: '#9a3412', label: '杏色' },
+    // 特殊
+    { bg: '#ffffff', text: '#1a1a2e', label: '純白', border: '#ddd9cc' },
+    { bg: 'linear-gradient(135deg,#667eea,#764ba2)', text: '#ffffff', label: '紫漸層' },
+    { bg: 'linear-gradient(135deg,#f093fb,#f5576c)', text: '#ffffff', label: '粉漸層' },
+    { bg: 'linear-gradient(135deg,#4facfe,#00f2fe)', text: '#ffffff', label: '藍漸層' },
+    { bg: 'linear-gradient(135deg,#43e97b,#38f9d7)', text: '#333333', label: '綠漸層' },
+    { bg: 'linear-gradient(135deg,#fa709a,#fee140)', text: '#333333', label: '橙紅漸層' },
+  ];
+
+  function initStepColorGrid() {
+    const grid = document.getElementById('step-color-grid');
+    if (!grid || grid.children.length > 0) return;
+    STEP_COLORS.forEach((c, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'color-swatch';
+      btn.title = c.label;
+      btn.style.background = c.bg;
+      if (c.border) btn.style.border = `2px solid ${c.border}`;
+      btn.dataset.idx = i;
+      btn.onclick = () => {
+        _pendingColor = c.bg;
+        _pendingTextColor = c.text;
+        updateStepPreview();
+        grid.querySelectorAll('.color-swatch').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      };
+      grid.appendChild(btn);
+    });
+  }
+
+  function initStepIconGrid() {
+    const grid = document.getElementById('step-icon-grid');
+    if (!grid || grid.children.length > 0) return;
+    // 恢復數字選項
+    const resetBtn = document.createElement('button');
+    resetBtn.className = 'icon-opt';
+    resetBtn.innerHTML = '<span style="font-size:10px;font-weight:700;line-height:1.2">1<br>2<br>3</span>';
+    resetBtn.title = '恢復數字';
+    resetBtn.onclick = () => {
+      _pendingIcon = null;
+      updateStepPreview();
+      grid.querySelectorAll('.icon-opt').forEach(b => b.classList.remove('selected'));
+      resetBtn.classList.add('selected');
+    };
+    grid.appendChild(resetBtn);
+    ALL_ICONS.forEach(ic => {
+      const btn = document.createElement('button');
+      btn.className = 'icon-opt';
+      btn.textContent = ic;
+      btn.onclick = () => {
+        _pendingIcon = ic;
+        updateStepPreview();
+        grid.querySelectorAll('.icon-opt').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      };
+      grid.appendChild(btn);
+    });
+  }
+
+  function updateStepPreview() {
+    const preview = document.getElementById('step-icon-preview');
+    if (!preview) return;
+    // 取得當前步驟號碼
+    const numEl = _stepIconTargetId ? document.querySelector(`#${_stepIconTargetId} .step-number`) : null;
+    const currentNum = numEl ? (numEl.dataset.num || '1') : '1';
+    const displayContent = _pendingIcon
+      ? `<span style="font-size:1.3rem">${_pendingIcon}</span>`
+      : currentNum;
+    preview.innerHTML = displayContent;
+    const bg = _pendingColor || (numEl && numEl.dataset.bg) || '#1a1a2e';
+    const tc = _pendingTextColor || (numEl && numEl.dataset.tc) || '#ffffff';
+    preview.style.background = bg;
+    preview.style.color = tc;
+  }
+
+  function openStepIconModal(stepId) {
+    if (!document.body.classList.contains('editing')) return;
+    _stepIconTargetId = stepId;
+    const numEl = document.querySelector(`#${stepId} .step-number`);
+    // 讀取當前狀態作為暫存初始值
+    _pendingIcon = numEl ? (numEl.dataset.customIcon || null) : null;
+    _pendingColor = numEl ? (numEl.dataset.bg || '#1a1a2e') : '#1a1a2e';
+    _pendingTextColor = numEl ? (numEl.dataset.tc || '#ffffff') : '#ffffff';
+
+    initStepColorGrid();
+    initStepIconGrid();
+    updateStepPreview();
+
+    document.getElementById('step-icon-modal').classList.add('open');
+  }
+
+  function confirmStepStyle() {
+    // Logo icon mode
+    if (_logoIconMode) {
+      if (_pendingIcon) {
+        document.getElementById('logo-icon').textContent = _pendingIcon;
+        showToast('✅ Logo 圖示已更新');
+      }
+      closeStepIconModal();
+      _logoIconMode = false;
+      return;
+    }
+    // Guide page title icon mode
+    if (_pageIconGuideId) {
+      if (_pendingIcon) {
+        const guide = guides.find(g => g.id === _pageIconGuideId);
+        if (guide) {
+          guide.icon = _pendingIcon;
+          const iconEl = document.querySelector(`#${_pageIconGuideId} .page-title-icon`);
+          if (iconEl) iconEl.textContent = _pendingIcon;
+          renderHomeCards();
+          renderSidebar();
+          showToast('✅ 教學圖示已更新');
+        }
+      }
+      closeStepIconModal();
+      _pageIconGuideId = null;
+      return;
+    }
+    // Normal step icon mode
+    const stepId = _stepIconTargetId;
+    if (!stepId) return;
+    const numEl = document.querySelector(`#${stepId} .step-number`);
+    if (!numEl) return;
+
+    // 套用底色
+    const bg = _pendingColor || '#1a1a2e';
+    const tc = _pendingTextColor || '#ffffff';
+    numEl.style.background = bg;
+    numEl.style.color = tc;
+    numEl.dataset.bg = bg;
+    numEl.dataset.tc = tc;
+
+    // 套用圖示
+    if (_pendingIcon) {
+      numEl.innerHTML = `<span style="font-size:1.2rem">${_pendingIcon}</span>`;
+      numEl.dataset.customIcon = _pendingIcon;
+    } else {
+      // 恢復數字
+      const container = numEl.closest('.steps-container');
+      if (container) {
+        container.querySelectorAll('.step-block').forEach((b, i) => {
+          const n = b.querySelector('.step-number');
+          n.innerHTML = i + 1;
+          n.dataset.num = i + 1;
+          delete n.dataset.customIcon;
+        });
+      } else {
+        numEl.innerHTML = numEl.dataset.num || '1';
+        delete numEl.dataset.customIcon;
+      }
+    }
+    closeStepIconModal();
+    showToast('✅ 步驟樣式已更新');
+  }
+
+  function resetStepStyle() {
+    _pendingIcon = null;
+    _pendingColor = '#1a1a2e';
+    _pendingTextColor = '#ffffff';
+    updateStepPreview();
+    document.getElementById('step-color-grid').querySelectorAll('.color-swatch').forEach(b => b.classList.remove('selected'));
+    document.getElementById('step-icon-grid').querySelectorAll('.icon-opt').forEach(b => b.classList.remove('selected'));
+  }
+
+  function closeStepIconModal() {
+    document.getElementById('step-icon-modal').classList.remove('open');
+    _stepIconTargetId = null;
+    // reset grids for next open
+    document.getElementById('step-icon-grid').innerHTML = '';
+    document.getElementById('step-color-grid').innerHTML = '';
+  }
+
+  // ── 內容管理 Modal ──
+  function openContentManager() {
+    document.getElementById('content-manager-modal').classList.add('open');
+  }
+  function closeContentManager() {
+    document.getElementById('content-manager-modal').classList.remove('open');
+  }
+
+  // ── Modal ──
+  function openModal() {
+    document.getElementById('modal').classList.add('open');
+    initIconPicker();
+  }
+  function closeModal() { document.getElementById('modal').classList.remove('open'); }
+  document.getElementById('modal').addEventListener('click', e => { if (e.target === document.getElementById('modal')) closeModal(); });
+  document.getElementById('content-manager-modal').addEventListener('click', e => { if (e.target === document.getElementById('content-manager-modal')) closeContentManager(); });
+
+  // ══════════════════════════════════════════════════
+  // ── 1. localStorage 自動儲存 ──
+  // ══════════════════════════════════════════════════
+  const STORAGE_KEY = 'guideApp_v2';
+
+  function saveToStorage() {
+    try {
+      const data = {
+        guides: guides.map(g => ({
+          id: g.id, title: g.title, category: g.category,
+          icon: g.icon, desc: g.desc,
+          steps: g.steps.map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon })),
+          table: g.table
+        })),
+        catIcons,
+        siteTitle: document.getElementById('site-title')?.textContent,
+        logoIcon: document.getElementById('logo-icon')?.textContent,
+        homeCategory: document.getElementById('home-category')?.textContent,
+        homeTitleText: document.getElementById('home-title-text')?.textContent,
+        tipTitle: document.getElementById('tip-title')?.textContent,
+        tipBody: document.getElementById('tip-body')?.textContent,
+        tipHidden: document.getElementById('home-tip-card')?.style.display === 'none',
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      showSaveStatus('✅ 已自動儲存');
+    } catch(e) { console.warn('儲存失敗', e); }
+  }
+
+  function loadFromStorage() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return false;
+      const data = JSON.parse(raw);
+      if (data.guides && data.guides.length > 0) {
+        applyContentData(data);
+        return true;
+      }
+    } catch(e) { console.warn('讀取失敗', e); }
+    return false;
+  }
+
+  function showSaveStatus(msg) {
+    const el = document.getElementById('save-status');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.opacity = '1';
+    clearTimeout(el._timer);
+    el._timer = setTimeout(() => { el.style.opacity = '0'; }, 2500);
+  }
+
+  // 自動儲存（每次主要操作後呼叫）
+  let _saveTimer = null;
+  function autoSave() {
+    clearTimeout(_saveTimer);
+    _saveTimer = setTimeout(saveToStorage, 800);
+  }
+
+  // ── content.json 機制 ──
+
+  // 從同目錄的 content.json 載入（上架後使用）
+  async function loadFromContentJson() {
+    try {
+      const res = await fetch('./content.json?t=' + Date.now());
+      if (!res.ok) return false;
+      const data = await res.json();
+      if (!data.guides || data.guides.length === 0) return false;
+      applyContentData(data);
+      console.log('✅ 從 content.json 載入內容');
+      return true;
+    } catch(e) {
+      console.log('content.json 未找到，使用預設資料');
+      return false;
+    }
+  }
+
+  // 套用內容資料（localStorage 和 content.json 共用）
+  function applyContentData(data) {
+    guides = data.guides;
+    catIcons = data.catIcons || catIcons;
+    const setEl = (id, val) => { if (!val) return; setTimeout(() => { const el = document.getElementById(id); if (el) el.textContent = val; }, 50); };
+    setEl('site-title', data.siteTitle);
+    setEl('logo-icon', data.logoIcon);
+    setEl('home-category', data.homeCategory);
+    setEl('home-title-text', data.homeTitleText);
+    setEl('tip-title', data.tipTitle);
+    setEl('tip-body', data.tipBody);
+    if (data.tipHidden) setTimeout(() => { const el = document.getElementById('home-tip-card'); if (el) el.style.display = 'none'; }, 80);
+  }
+
+  // 匯出目前所有內容為 content.json（供上傳 GitHub）
+  function exportContentJson() {
+    saveToStorage(); // 先存一次確保最新
+    const data = {
+      guides: guides.map(g => ({
+        id: g.id, title: g.title, category: g.category,
+        icon: g.icon, desc: g.desc,
+        steps: g.steps.map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon })),
+        table: g.table
+      })),
+      catIcons,
+      siteTitle: document.getElementById('site-title')?.textContent,
+      logoIcon: document.getElementById('logo-icon')?.textContent,
+      homeCategory: document.getElementById('home-category')?.textContent,
+      homeTitleText: document.getElementById('home-title-text')?.textContent,
+      tipTitle: document.getElementById('tip-title')?.textContent,
+      tipBody: document.getElementById('tip-body')?.textContent,
+      tipHidden: document.getElementById('home-tip-card')?.style.display === 'none',
+      exportedAt: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'content.json';
+    a.click();
+    showToast('📥 content.json 已下載，請上傳至 GitHub 同目錄');
+  }
+
+  // 清除 localStorage（讓下次重新從 content.json 讀取）
+  function clearLocalAndReload() {
+    if (!confirm('清除本機暫存後，將重新從 content.json 讀取內容，確定嗎？')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  }
+
+
+
+  // ══════════════════════════════════════════════════
+  // ── 2. 側邊欄搜尋 ──
+  // ══════════════════════════════════════════════════
+  function filterSidebar(keyword) {
+    keyword = keyword.trim().toLowerCase();
+    const items = document.querySelectorAll('#sidebar-list .sidebar-item');
+    const catRows = document.querySelectorAll('#sidebar-list .sidebar-cat-row');
+    let visibleCount = 0;
+    items.forEach(item => {
+      const label = item.querySelector('.sidebar-label');
+      const text = label ? label.textContent.toLowerCase() : '';
+      const show = !keyword || text.includes(keyword);
+      item.style.display = show ? '' : 'none';
+      if (show) visibleCount++;
+    });
+    // 分類標題：若整個分類都沒有可見項目則隱藏
+    catRows.forEach(row => {
+      const cat = row.querySelector('.sidebar-cat-title')?.dataset.cat;
+      if (!cat) return;
+      let haVisible = false;
+      items.forEach(item => {
+        const guideId = item.dataset.id;
+        const guide = guides.find(g => g.id === guideId);
+        if (guide && guide.category === cat && item.style.display !== 'none') haVisible = true;
+      });
+      row.style.display = (!keyword || haVisible) ? '' : 'none';
+    });
+    const noResult = document.getElementById('search-no-result');
+    if (noResult) noResult.style.display = (keyword && visibleCount === 0) ? 'block' : 'none';
+  }
+
+  // ══════════════════════════════════════════════════
+  // ── 3. 步驟拖曳排序 ──
+  // ══════════════════════════════════════════════════
+  let _dragSrcId = null;
+
+  function stepDragStart(e, stepId) {
+    _dragSrcId = stepId;
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(() => { const el = document.getElementById(stepId); if (el) el.classList.add('dragging'); }, 0);
+  }
+
+  function stepDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const item = e.currentTarget;
+    document.querySelectorAll('.step-block').forEach(b => b.classList.remove('drag-over'));
+    if (item && item.id !== _dragSrcId) item.classList.add('drag-over');
+  }
+
+  function stepDrop(e, targetId, guideId) {
+    e.preventDefault();
+    if (!_dragSrcId || _dragSrcId === targetId) return;
+    const container = document.getElementById('steps-' + guideId);
+    const srcEl = document.getElementById(_dragSrcId);
+    const tgtEl = document.getElementById(targetId);
+    if (!srcEl || !tgtEl || !container) return;
+    // DOM swap
+    const allBlocks = [...container.querySelectorAll('.step-block')];
+    const srcIdx = allBlocks.indexOf(srcEl);
+    const tgtIdx = allBlocks.indexOf(tgtEl);
+    if (srcIdx < tgtIdx) container.insertBefore(srcEl, tgtEl.nextSibling);
+    else container.insertBefore(srcEl, tgtEl);
+    // Re-number (preserve color/icon)
+    container.querySelectorAll('.step-block').forEach((b, i) => {
+      const n = b.querySelector('.step-number');
+      if (n && !n.dataset.customIcon) { n.innerHTML = (i + 1); n.dataset.num = i + 1; }
+    });
+    document.querySelectorAll('.step-block').forEach(b => b.classList.remove('drag-over', 'dragging'));
+    autoSave();
+    showToast('↕️ 步驟順序已更新');
+  }
+
+  function stepDragEnd(e) {
+    document.querySelectorAll('.step-block').forEach(b => b.classList.remove('dragging', 'drag-over'));
+    _dragSrcId = null;
+  }
+
+  // ══════════════════════════════════════════════════
+  // ── 4. 進度追蹤 ──
+  // ══════════════════════════════════════════════════
+  let _progressMode = {};
+
+  function toggleProgressMode(guideId) {
+    _progressMode[guideId] = !_progressMode[guideId];
+    const wrap = document.getElementById('progress-wrap-' + guideId);
+    const btn = document.getElementById('progress-toggle-' + guideId);
+    const page = document.getElementById(guideId);
+    if (_progressMode[guideId]) {
+      wrap.style.display = 'block';
+      btn.classList.add('active');
+      page.querySelectorAll('.step-check').forEach(c => c.style.display = 'flex');
+      updateProgress(guideId);
+    } else {
+      wrap.style.display = 'none';
+      btn.classList.remove('active');
+      page.querySelectorAll('.step-check').forEach(c => c.style.display = 'none');
+      page.querySelectorAll('.step-block').forEach(b => b.classList.remove('done'));
+    }
+  }
+
+  function toggleStepDone(block, guideId) {
+    if (!_progressMode[guideId]) return;
+    block.classList.toggle('done');
+    updateProgress(guideId);
+  }
+
+  function updateProgress(guideId) {
+    const page = document.getElementById(guideId);
+    if (!page) return;
+    const all = page.querySelectorAll('.step-block').length;
+    const done = page.querySelectorAll('.step-block.done').length;
+    const fill = document.getElementById('progress-fill-' + guideId);
+    const text = document.getElementById('progress-text-' + guideId);
+    if (fill) fill.style.width = (all ? Math.round(done / all * 100) : 0) + '%';
+    if (text) text.textContent = done + ' / ' + all + ' 步驟完成';
+  }
+
+  // ══════════════════════════════════════════════════
+  // ── 5. 複製教學 ──
+  // ══════════════════════════════════════════════════
+  function duplicateGuide(guideId) {
+    const src = guides.find(g => g.id === guideId);
+    if (!src) return;
+    const newId = 'guide-' + Date.now();
+    const newGuide = JSON.parse(JSON.stringify(src));
+    newGuide.id = newId;
+    newGuide.title = src.title + '（複本）';
+    newGuide.steps = newGuide.steps.map((s, i) => ({ ...s, id: newId + '-s' + (i + 1) }));
+    stepCounter[newId] = newGuide.steps.length;
+    guides.push(newGuide);
+    renderGuidePage(newGuide);
+    renderSidebar();
+    renderHomeCards();
+    showSection('guide', newId);
+    autoSave();
+    showToast('📋 已複製為「' + newGuide.title + '」');
+  }
+
+  // ══════════════════════════════════════════════════
+  // ── 6. 列印 & PDF ──
+  // ══════════════════════════════════════════════════
+  function printGuide(guideId) {
+    // 確保要列印的頁面是 active
+    document.querySelectorAll('.guide-page').forEach(p => p.style.display = 'none');
+    const page = document.getElementById(guideId);
+    if (page) page.style.display = 'block';
+    window.print();
+    // restore
+    setTimeout(() => {
+      document.querySelectorAll('.guide-page').forEach(p => { p.style.display = ''; });
+      showSection('guide', guideId);
+    }, 500);
+  }
+
+  function exportPDF(guideId) {
+    showToast('🖨️ 正在準備 PDF，請在列印對話框選擇「儲存為 PDF」');
+    setTimeout(() => printGuide(guideId), 400);
+  }
+
+  // ── Toast ──
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  // （預設頁面已在 window.onload 中初始化）
+</script>
+
+<!-- 免責聲明 -->
+<div class="disclaimer-bar" id="disclaimer-bar" contenteditable="false" title="雙擊編輯免責聲明" ondblclick="enableDisclaimerEdit(this)">
+  ⚠️ 本網站內容僅供參考，實際規定與流程請以各機關最新公告為準，如有疑問請洽詢承辦機關。
+</div>
+
+<!-- Footer -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <span class="footer-brand">瑞奇教貸款－詹專員</span>
+    <span class="footer-sep">｜</span>
+    <span class="footer-copy">© <span id="footer-year"></span> 版權所有</span>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('footer-year').textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>
