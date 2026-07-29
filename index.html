@@ -1100,6 +1100,7 @@
   body.view-only .font-toolbar,
   body.view-only .table-controls,
   body.view-only .sidebar-add,
+  body.view-only .drawer-add,
   body.view-only .sidebar-del,
   body.view-only .sidebar-cat-del,
   body.view-only .btn-del-step,
@@ -1119,14 +1120,6 @@
   body.view-only .image-upload-zone {
     cursor: default;
     resize: none;
-  }
-  body.view-only .view-only-badge {
-    display: flex !important;
-  }
-
-  /* 唯讀標記 */
-  .view-only-badge {
-    display: none !important;
   }
 
   /* ── 提示區塊隱藏按鈕 ── */
@@ -1333,6 +1326,83 @@
   body.editing .step-media-controls { display: flex; }
   .btn-media { background: none; border: 1.5px dashed var(--border-strong); border-radius: 7px; padding: 6px 14px; font-size: 13px; cursor: pointer; font-family: inherit; color: var(--ink-light); transition: all 0.15s; display: flex; align-items: center; gap: 5px; }
   .btn-media:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-pale); }
+  .paste-hint { font-size: 11.5px; color: var(--ink-light); opacity: 0.8; align-self: center; }
+  @media (max-width: 768px) { .paste-hint { display: none; } }
+
+  /* ── 截圖標註編輯器（類似 LINE 擷取畫面）── */
+  .screenshot-editor {
+    background: #2b2b2b;
+    border-radius: 14px;
+    padding: 14px;
+    width: min(92vw, 780px);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: var(--shadow-lg);
+  }
+  .se-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    background: #1e1e1e;
+    border-radius: 10px;
+    padding: 8px 10px;
+  }
+  .se-tool {
+    background: none;
+    border: 1px solid transparent;
+    color: rgba(255,255,255,0.75);
+    font-size: 17px;
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.12s;
+  }
+  .se-tool:hover { background: rgba(255,255,255,0.1); color: white; }
+  .se-tool.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .se-sep { width: 1px; height: 22px; background: rgba(255,255,255,0.15); margin: 0 2px; }
+  .se-colors { display: flex; gap: 5px; }
+  .se-color-swatch {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.12s;
+  }
+  .se-color-swatch:hover { transform: scale(1.15); }
+  .se-color-swatch.selected { border-color: white; box-shadow: 0 0 0 2px var(--accent); }
+  .se-size {
+    width: 90px;
+    accent-color: var(--accent);
+  }
+  .se-canvas-wrap {
+    flex: 1;
+    overflow: auto;
+    background: repeating-conic-gradient(#3a3a3a 0% 25%, #333 0% 50%) 50% / 20px 20px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-height: 60vh;
+  }
+  #se-canvas {
+    max-width: 100%;
+    display: block;
+    cursor: crosshair;
+    touch-action: none;
+  }
+  .se-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .se-actions .btn-cancel { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.85); }
+  .se-actions .btn-cancel:hover { background: rgba(255,255,255,0.15); }
+  .se-actions .btn-confirm { background: var(--accent); }
+
 
   /* ── 내容管理 Modal ── */
   .cm-section { margin-bottom: 0.8rem; }
@@ -1478,7 +1548,6 @@
   <div class="header-clock" id="header-clock"></div>
   <div class="save-status" id="save-status" title="資料已自動儲存"></div>
   <button class="btn-header-tool" onclick="openContentManager()" title="內容管理">⚙️</button>
-  <div class="view-only-badge">👁 瀏覽模式</div>
   <button class="btn-add" onclick="openModal()">＋ 新增教學</button>
 </header>
 
@@ -1669,6 +1738,33 @@
 </div>
 
 <!-- Toast -->
+<!-- 截圖標註編輯器（類似 LINE 擷取畫面）-->
+<div class="modal-bg" id="screenshot-editor-modal">
+  <div class="screenshot-editor">
+    <div class="se-toolbar">
+      <button class="se-tool active" data-tool="pen" onclick="setEditorTool('pen', this)" title="畫筆">✏️</button>
+      <button class="se-tool" data-tool="arrow" onclick="setEditorTool('arrow', this)" title="箭頭">➡️</button>
+      <button class="se-tool" data-tool="rect" onclick="setEditorTool('rect', this)" title="矩形框">▭</button>
+      <button class="se-tool" data-tool="text" onclick="setEditorTool('text', this)" title="加入文字">🅰️</button>
+      <button class="se-tool" data-tool="mosaic" onclick="setEditorTool('mosaic', this)" title="馬賽克遮蔽">🌫️</button>
+      <div class="se-sep"></div>
+      <div class="se-colors" id="se-colors"></div>
+      <div class="se-sep"></div>
+      <input type="range" class="se-size" id="se-size" min="2" max="20" value="4" title="筆刷粗細">
+      <div class="se-sep"></div>
+      <button class="se-tool" onclick="undoEditorStep()" title="復原上一步">↺</button>
+      <button class="se-tool" onclick="clearEditorAnnotations()" title="清除所有標註">🗑️</button>
+    </div>
+    <div class="se-canvas-wrap" id="se-canvas-wrap">
+      <canvas id="se-canvas"></canvas>
+    </div>
+    <div class="se-actions">
+      <button class="btn-cancel" onclick="closeScreenshotEditor()">取消</button>
+      <button class="btn-confirm" onclick="confirmScreenshotEditor()">✅ 插入圖片</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- 影片播放 Modal -->
@@ -2399,10 +2495,339 @@
           <div class="step-media" id="media-${step.id}"></div>
           <div class="step-media-controls">
             <button class="btn-media" onclick="addImageBlock('${step.id}')">🖼️ 加入圖片</button>
+            <button class="btn-media" onclick="focusStepForPaste('${step.id}')" title="點擊後直接按 Ctrl+V 貼上剪貼簿截圖">📸 貼上截圖</button>
             <button class="btn-media" onclick="addVideoBlock('${step.id}')">▶️ 嵌入影片</button>
+            <span class="paste-hint">💡 也可用截圖工具複製後，在此步驟按 Ctrl+V 貼上</span>
           </div>
         </div>
       </div>`;
+  }
+
+  // ── 截圖貼上功能 ──
+  let _pasteTargetStepId = null;
+
+  function focusStepForPaste(stepId) {
+    _pasteTargetStepId = stepId;
+    const media = document.getElementById('media-' + stepId);
+    if (media) media.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    showToast('📸 現在請按 Ctrl+V（或 Cmd+V）貼上截圖');
+  }
+
+  function addPastedImageToStep(stepId, file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      openScreenshotEditor(e.target.result, { mode: 'newBlock', stepId });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // 全域監聽貼上事件：只要在編輯模式下、游標位於某個步驟區塊內，貼上圖片即開啟標註編輯器
+  document.addEventListener('paste', (e) => {
+    if (!document.body.classList.contains('editing')) return;
+    const clipboardData = e.clipboardData || window.clipboardData;
+    if (!clipboardData || !clipboardData.items) return;
+    let imageFile = null;
+    for (let i = 0; i < clipboardData.items.length; i++) {
+      if (clipboardData.items[i].type.indexOf('image') !== -1) {
+        imageFile = clipboardData.items[i].getAsFile();
+        break;
+      }
+    }
+    if (!imageFile) return; // 剪貼簿不是圖片，維持原本文字貼上行為
+
+    // 判斷貼上目標步驟：優先用目前游標所在的 .step-block，其次用「貼上截圖」按鈕記住的目標
+    const activeStepBlock = e.target && e.target.closest ? e.target.closest('.step-block') : null;
+    const targetStepId = activeStepBlock ? activeStepBlock.id : _pasteTargetStepId;
+    if (!targetStepId) {
+      showToast('⚠️ 請先點選某個步驟（或點「📸 貼上截圖」按鈕）再貼上');
+      return;
+    }
+    e.preventDefault();
+    addPastedImageToStep(targetStepId, imageFile);
+    _pasteTargetStepId = null;
+  });
+
+  // ══════════════════════════════════════════════════
+  // ── 截圖標註編輯器（類似 LINE 擷取畫面）──
+  // ══════════════════════════════════════════════════
+  const SE_COLORS = ['#ff3b30', '#ffcc00', '#34c759', '#0a84ff', '#af52de', '#ffffff', '#000000'];
+  let _seCanvas = null, _seCtx = null;
+  let _seTool = 'pen';
+  let _seColor = SE_COLORS[0];
+  let _seSize = 4;
+  let _seDrawing = false;
+  let _seStartX = 0, _seStartY = 0;
+  let _seBaseSnapshot = null;   // 開始畫某一筆前的畫布快照（用於形狀預覽即時重繪）
+  let _seUndoStack = [];        // 復原歷史
+  let _seBaseImage = null;      // 原始底圖（清除標註時用）
+  let _seTargetInfo = null;     // { mode: 'zone'|'newBlock', zoneEl?, stepId? }
+
+  function initSEColorPicker() {
+    const wrap = document.getElementById('se-colors');
+    if (!wrap || wrap.children.length > 0) return;
+    SE_COLORS.forEach(c => {
+      const sw = document.createElement('div');
+      sw.className = 'se-color-swatch' + (c === _seColor ? ' selected' : '');
+      sw.style.background = c;
+      if (c === '#ffffff') sw.style.border = '2px solid #999';
+      sw.onclick = () => {
+        _seColor = c;
+        wrap.querySelectorAll('.se-color-swatch').forEach(s => s.classList.remove('selected'));
+        sw.classList.add('selected');
+      };
+      wrap.appendChild(sw);
+    });
+  }
+
+  function setEditorTool(tool, btnEl) {
+    _seTool = tool;
+    document.querySelectorAll('.se-tool[data-tool]').forEach(b => b.classList.remove('active'));
+    if (btnEl) btnEl.classList.add('active');
+  }
+
+  function openScreenshotEditor(dataUrl, targetInfo) {
+    _seTargetInfo = targetInfo;
+    _seUndoStack = [];
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.getElementById('se-canvas');
+      _seCanvas = canvas;
+      _seCtx = canvas.getContext('2d');
+      // 限制最大內部解析度，避免超大截圖造成效能問題，同時維持清晰度
+      const MAX_DIM = 1400;
+      let w = img.naturalWidth, h = img.naturalHeight;
+      if (w > MAX_DIM || h > MAX_DIM) {
+        const scale = Math.min(MAX_DIM / w, MAX_DIM / h);
+        w = Math.round(w * scale);
+        h = Math.round(h * scale);
+      }
+      canvas.width = w;
+      canvas.height = h;
+      _seCtx.drawImage(img, 0, 0, w, h);
+      _seBaseImage = _seCtx.getImageData(0, 0, w, h);
+
+      initSEColorPicker();
+      setEditorTool('pen', document.querySelector('.se-tool[data-tool="pen"]'));
+      document.getElementById('se-size').value = 4;
+      _seSize = 4;
+
+      bindEditorCanvasEvents(canvas);
+      document.getElementById('screenshot-editor-modal').classList.add('open');
+    };
+    img.src = dataUrl;
+  }
+
+  function closeScreenshotEditor() {
+    document.getElementById('screenshot-editor-modal').classList.remove('open');
+    _seTargetInfo = null;
+    _seCanvas = null;
+    _seCtx = null;
+    _seUndoStack = [];
+  }
+
+  function getCanvasPos(e) {
+    const rect = _seCanvas.getBoundingClientRect();
+    const scaleX = _seCanvas.width / rect.width;
+    const scaleY = _seCanvas.height / rect.height;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+  }
+
+  function pushSEUndo() {
+    if (!_seCtx) return;
+    _seUndoStack.push(_seCtx.getImageData(0, 0, _seCanvas.width, _seCanvas.height));
+    if (_seUndoStack.length > 25) _seUndoStack.shift();
+  }
+
+  function undoEditorStep() {
+    if (!_seCtx || _seUndoStack.length === 0) { showToast('沒有可復原的步驟了'); return; }
+    const prev = _seUndoStack.pop();
+    _seCtx.putImageData(prev, 0, 0);
+  }
+
+  function clearEditorAnnotations() {
+    if (!_seCtx || !_seBaseImage) return;
+    pushSEUndo();
+    _seCtx.putImageData(_seBaseImage, 0, 0);
+    showToast('🗑️ 已清除所有標註');
+  }
+
+  function bindEditorCanvasEvents(canvas) {
+    // 移除舊監聽避免重複綁定
+    const newCanvas = canvas.cloneNode(true);
+    canvas.parentNode.replaceChild(newCanvas, canvas);
+    _seCanvas = newCanvas;
+    _seCtx = newCanvas.getContext('2d');
+    _seCtx.putImageData(_seBaseImage, 0, 0);
+
+    const start = (e) => {
+      e.preventDefault();
+      _seSize = parseInt(document.getElementById('se-size').value) || 4;
+      const pos = getCanvasPos(e);
+      _seStartX = pos.x; _seStartY = pos.y;
+
+      if (_seTool === 'text') {
+        const text = prompt('請輸入要加入的文字：');
+        if (text && text.trim()) {
+          pushSEUndo();
+          _seCtx.fillStyle = _seColor;
+          _seCtx.font = `bold ${_seSize * 5}px "Noto Sans TC", sans-serif`;
+          _seCtx.textBaseline = 'top';
+          _seCtx.fillText(text.trim(), pos.x, pos.y);
+        }
+        return;
+      }
+
+      pushSEUndo();
+      _seBaseSnapshot = _seCtx.getImageData(0, 0, _seCanvas.width, _seCanvas.height);
+      _seDrawing = true;
+
+      if (_seTool === 'pen') {
+        _seCtx.strokeStyle = _seColor;
+        _seCtx.lineWidth = _seSize;
+        _seCtx.lineCap = 'round';
+        _seCtx.lineJoin = 'round';
+        _seCtx.beginPath();
+        _seCtx.moveTo(pos.x, pos.y);
+      }
+    };
+
+    const move = (e) => {
+      if (!_seDrawing) return;
+      e.preventDefault();
+      const pos = getCanvasPos(e);
+
+      if (_seTool === 'pen') {
+        _seCtx.lineTo(pos.x, pos.y);
+        _seCtx.stroke();
+      } else if (_seTool === 'arrow' || _seTool === 'rect' || _seTool === 'mosaic') {
+        // 即時預覽：先還原到起始快照，再畫出目前形狀
+        _seCtx.putImageData(_seBaseSnapshot, 0, 0);
+        if (_seTool === 'rect') {
+          _seCtx.strokeStyle = _seColor;
+          _seCtx.lineWidth = _seSize;
+          _seCtx.strokeRect(_seStartX, _seStartY, pos.x - _seStartX, pos.y - _seStartY);
+        } else if (_seTool === 'arrow') {
+          drawArrow(_seCtx, _seStartX, _seStartY, pos.x, pos.y, _seColor, _seSize);
+        } else if (_seTool === 'mosaic') {
+          _seCtx.strokeStyle = 'rgba(255,255,255,0.9)';
+          _seCtx.lineWidth = 1.5;
+          _seCtx.setLineDash([6, 4]);
+          _seCtx.strokeRect(_seStartX, _seStartY, pos.x - _seStartX, pos.y - _seStartY);
+          _seCtx.setLineDash([]);
+        }
+      }
+    };
+
+    const end = (e) => {
+      if (!_seDrawing) return;
+      _seDrawing = false;
+      const pos = getCanvasPos(e.changedTouches ? { clientX: e.changedTouches[0].clientX, clientY: e.changedTouches[0].clientY } : e);
+
+      if (_seTool === 'rect') {
+        _seCtx.putImageData(_seBaseSnapshot, 0, 0);
+        _seCtx.strokeStyle = _seColor;
+        _seCtx.lineWidth = _seSize;
+        _seCtx.strokeRect(_seStartX, _seStartY, pos.x - _seStartX, pos.y - _seStartY);
+      } else if (_seTool === 'arrow') {
+        _seCtx.putImageData(_seBaseSnapshot, 0, 0);
+        drawArrow(_seCtx, _seStartX, _seStartY, pos.x, pos.y, _seColor, _seSize);
+      } else if (_seTool === 'mosaic') {
+        _seCtx.putImageData(_seBaseSnapshot, 0, 0);
+        applyMosaic(_seCtx, _seStartX, _seStartY, pos.x, pos.y);
+      }
+    };
+
+    newCanvas.addEventListener('mousedown', start);
+    newCanvas.addEventListener('mousemove', move);
+    newCanvas.addEventListener('mouseup', end);
+    newCanvas.addEventListener('mouseleave', () => { _seDrawing = false; });
+    newCanvas.addEventListener('touchstart', start, { passive: false });
+    newCanvas.addEventListener('touchmove', move, { passive: false });
+    newCanvas.addEventListener('touchend', end);
+  }
+
+  function drawArrow(ctx, x1, y1, x2, y2, color, size) {
+    const headLen = Math.max(12, size * 3);
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = size;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function applyMosaic(ctx, x1, y1, x2, y2) {
+    const bx = Math.min(x1, x2), by = Math.min(y1, y2);
+    const bw = Math.abs(x2 - x1), bh = Math.abs(y2 - y1);
+    if (bw < 4 || bh < 4) return;
+    const blockSize = 12;
+    const imgData = ctx.getImageData(bx, by, bw, bh);
+    const data = imgData.data;
+    for (let by2 = 0; by2 < bh; by2 += blockSize) {
+      for (let bx2 = 0; bx2 < bw; bx2 += blockSize) {
+        let r = 0, g = 0, bch = 0, count = 0;
+        for (let y = by2; y < Math.min(by2 + blockSize, bh); y++) {
+          for (let x = bx2; x < Math.min(bx2 + blockSize, bw); x++) {
+            const idx = (y * bw + x) * 4;
+            r += data[idx]; g += data[idx + 1]; bch += data[idx + 2]; count++;
+          }
+        }
+        r = Math.round(r / count); g = Math.round(g / count); bch = Math.round(bch / count);
+        for (let y = by2; y < Math.min(by2 + blockSize, bh); y++) {
+          for (let x = bx2; x < Math.min(bx2 + blockSize, bw); x++) {
+            const idx = (y * bw + x) * 4;
+            data[idx] = r; data[idx + 1] = g; data[idx + 2] = bch;
+          }
+        }
+      }
+    }
+    ctx.putImageData(imgData, bx, by);
+  }
+
+  function confirmScreenshotEditor() {
+    if (!_seCanvas || !_seTargetInfo) { closeScreenshotEditor(); return; }
+    const dataUrl = _seCanvas.toDataURL('image/png');
+    const info = _seTargetInfo;
+
+    if (info.mode === 'zone' && info.zoneEl) {
+      info.zoneEl.innerHTML = `
+        <input type="file" accept="image/*" onchange="handleImageUpload(event,this.parentElement)" style="position:absolute;inset:0;opacity:0;cursor:pointer;z-index:2">
+        <img src="${dataUrl}" style="width:100%;height:100%;object-fit:contain;border-radius:8px;display:block">
+        <div class="image-overlay">🔄 更換圖片</div>
+        <div class="resize-hint">⤡ 拖曳調整大小</div>`;
+      info.zoneEl.classList.add('has-image');
+    } else if (info.mode === 'newBlock' && info.stepId) {
+      const media = document.getElementById('media-' + info.stepId);
+      if (media) {
+        const blockId = 'imgblock-' + Date.now();
+        const wrap = document.createElement('div');
+        wrap.className = 'media-block';
+        wrap.id = blockId;
+        wrap.innerHTML = `
+          <button class="btn-del-media" onclick="document.getElementById('${blockId}').remove();showToast('🗑️ 已移除圖片')" title="移除此圖片">✕</button>
+          <div class="image-upload-zone has-image">
+            <input type="file" accept="image/*" onchange="handleImageUpload(event, this.parentElement)" style="position:absolute;inset:0;opacity:0;cursor:pointer;z-index:2">
+            <img src="${dataUrl}" style="width:100%;height:100%;object-fit:contain;border-radius:8px;display:block">
+            <div class="image-overlay">🔄 更換圖片</div>
+            <div class="resize-hint">⤡ 拖曳調整大小</div>
+          </div>`;
+        media.appendChild(wrap);
+      }
+    }
+    autoSave();
+    showToast('✅ 圖片已插入');
+    closeScreenshotEditor();
   }
 
   // 新增圖片區塊（獨立、可刪除）
@@ -2608,14 +3033,10 @@
     if (!file) return;
     const reader = new FileReader();
     reader.onload = e => {
-      zone.innerHTML = `
-        <input type="file" accept="image/*" onchange="handleImageUpload(event,this.parentElement)" style="position:absolute;inset:0;opacity:0;cursor:pointer;z-index:2">
-        <img src="${e.target.result}" style="width:100%;height:100%;object-fit:contain;border-radius:8px;display:block">
-        <div class="image-overlay">🔄 更換圖片</div>
-        <div class="resize-hint">⤡ 拖曳調整大小</div>`;
-      zone.classList.add('has-image');
+      openScreenshotEditor(e.target.result, { mode: 'zone', zoneEl: zone });
     };
     reader.readAsDataURL(file);
+    event.target.value = ''; // 允許重複選同一檔案也能觸發 change
   }
 
   // ── 新增步驟 ──
@@ -3542,12 +3963,14 @@
 
   // ── Modal ──
   function openModal() {
+    if (document.body.classList.contains('view-only')) return; // 瀏覽模式下禁止新增教學
     document.getElementById('modal').classList.add('open');
     initIconPicker();
   }
   function closeModal() { document.getElementById('modal').classList.remove('open'); }
   document.getElementById('modal').addEventListener('click', e => { if (e.target === document.getElementById('modal')) closeModal(); });
   document.getElementById('content-manager-modal').addEventListener('click', e => { if (e.target === document.getElementById('content-manager-modal')) closeContentManager(); });
+  // 截圖編輯器：不透過點擊背景關閉，避免誤觸遺失標註內容，僅能用「取消」或「確認插入」按鈕
 
   // ══════════════════════════════════════════════════
   // ── 1. localStorage 自動儲存 ──
