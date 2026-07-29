@@ -3,6 +3,46 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- 禁止瀏覽器快取此頁面，確保每次都抓取最新版本 -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
+<script>
+  // ══════════════════════════════════════════════════
+  // ── 自動清除快取機制 ──
+  // 每次開啟網頁時（電腦/手機皆適用）：
+  // 1. 清除舊版 Service Worker（若有殘留）
+  // 2. 清除瀏覽器 Cache Storage
+  // 3. 每個分頁只在「第一次開啟」時，自動帶著快取破壞參數重新整理一次，
+  //    確保抓到的是 GitHub 上最新的 index.html，而非瀏覽器本地快取版本
+  // 注意：這不會清除 localStorage（你編輯的教學內容不受影響）
+  // ══════════════════════════════════════════════════
+  (function() {
+    try {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          regs.forEach(reg => reg.unregister());
+        });
+      }
+      if (window.caches && caches.keys) {
+        caches.keys().then(names => names.forEach(name => caches.delete(name)));
+      }
+    } catch (e) { /* 忽略不支援的瀏覽器 */ }
+
+    try {
+      const BUST_FLAG = 'ss_cacheBusted_v1';
+      if (!sessionStorage.getItem(BUST_FLAG)) {
+        sessionStorage.setItem(BUST_FLAG, '1');
+        const url = new URL(location.href);
+        url.searchParams.set('_cb', Date.now().toString());
+        location.replace(url.toString());
+      }
+    } catch (e) { /* 忽略不支援的瀏覽器 */ }
+  })();
+</script>
+
 <title>資料申請教學平台</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
