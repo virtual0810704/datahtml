@@ -528,6 +528,43 @@
   }
   .add-step-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-pale); }
 
+  /* ── 手機／電腦分頁教學 ── */
+  .device-tab-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 2rem 0 1rem;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .device-tab-header h2 { margin: 0; }
+  .btn-device-toggle { white-space: nowrap; }
+  .device-tab-switch {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 1.2rem;
+    border-bottom: 2px solid var(--border);
+  }
+  .device-tab-btn {
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 8px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-light);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    margin-bottom: -2px;
+  }
+  .device-tab-btn:hover { color: var(--accent); }
+  .device-tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  body.view-only .btn-device-toggle { display: none !important; }
+
   /* ── 空白頁 ── */
   .empty-state {
     text-align: center;
@@ -2301,7 +2338,6 @@
     const existing = document.getElementById(guide.id);
     if (existing) existing.remove();
 
-    const stepsHtml = guide.steps.map((s, i) => buildStepHtml(s, i + 1, guide.id)).join('');
     const tableHtml = buildTableHtml(guide);
 
     const div = document.createElement('div');
@@ -2342,9 +2378,11 @@
         </div>
       </div>
 
-      <h2 style="font-family:'Noto Serif TC',serif;font-size:1.1rem;margin:2rem 0 1rem;color:var(--ink)">📌 申辦步驟</h2>
-      <div class="steps-container" id="steps-${guide.id}">${stepsHtml}</div>
-      <button class="add-step-btn" onclick="addStep('${guide.id}')">＋ 新增步驟</button>
+      <div class="device-tab-header">
+        <h2 style="font-family:'Noto Serif TC',serif;font-size:1.1rem;color:var(--ink);margin:0">📌 申辦步驟</h2>
+        <button class="btn-toolbar btn-device-toggle" onclick="toggleDeviceTabs('${guide.id}')" title="切換為手機/電腦分頁教學">${guide.hasDeviceTabs ? '🔗 合併為單一教學' : '📱💻 分成手機/電腦版'}</button>
+      </div>
+      ${buildStepsSectionHtml(guide)}
 
       <!-- 所需文件清單 -->
       <div class="table-section" id="table-section-${guide.id}">
@@ -2512,6 +2550,76 @@
     el.focus();
     el.onblur = () => { el.contentEditable = 'false'; };
     el.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); el.blur(); } };
+  }
+
+  // ══════════════════════════════════════════════════
+  // ── 手機 / 電腦分頁教學功能 ──
+  // ══════════════════════════════════════════════════
+  function buildStepsSectionHtml(guide) {
+    if (!guide.hasDeviceTabs) {
+      const stepsHtml = guide.steps.map((s, i) => buildStepHtml(s, i + 1, guide.id)).join('');
+      return `
+      <div class="steps-container" id="steps-${guide.id}">${stepsHtml}</div>
+      <button class="add-step-btn" onclick="addStep('${guide.id}')">＋ 新增步驟</button>`;
+    }
+    const active = guide.activeDeviceTab || 'pc';
+    const pcSteps = (guide.deviceSteps && guide.deviceSteps.pc) || [];
+    const mobileSteps = (guide.deviceSteps && guide.deviceSteps.mobile) || [];
+    const pcHtml = pcSteps.map((s, i) => buildStepHtml(s, i + 1, guide.id)).join('');
+    const mobileHtml = mobileSteps.map((s, i) => buildStepHtml(s, i + 1, guide.id)).join('');
+    return `
+      <div class="device-tab-switch">
+        <button class="device-tab-btn ${active === 'pc' ? 'active' : ''}" onclick="switchDeviceTab('${guide.id}','pc')">💻 電腦版教學</button>
+        <button class="device-tab-btn ${active === 'mobile' ? 'active' : ''}" onclick="switchDeviceTab('${guide.id}','mobile')">📱 手機版教學</button>
+      </div>
+      <div class="steps-container" id="steps-${guide.id}-pc" style="${active === 'pc' ? '' : 'display:none'}">${pcHtml}</div>
+      <button class="add-step-btn" id="add-step-btn-${guide.id}-pc" style="${active === 'pc' ? '' : 'display:none'}" onclick="addStep('${guide.id}','pc')">＋ 新增電腦版步驟</button>
+      <div class="steps-container" id="steps-${guide.id}-mobile" style="${active === 'mobile' ? '' : 'display:none'}">${mobileHtml}</div>
+      <button class="add-step-btn" id="add-step-btn-${guide.id}-mobile" style="${active === 'mobile' ? '' : 'display:none'}" onclick="addStep('${guide.id}','mobile')">＋ 新增手機版步驟</button>`;
+  }
+
+  function switchDeviceTab(guideId, device) {
+    const guide = guides.find(g => g.id === guideId);
+    if (guide) guide.activeDeviceTab = device;
+    const page = document.getElementById(guideId);
+    if (!page) return;
+    page.querySelectorAll('.device-tab-btn').forEach(b => b.classList.remove('active'));
+    const clickedBtn = device === 'pc' ? page.querySelector('.device-tab-btn:nth-child(1)') : page.querySelector('.device-tab-btn:nth-child(2)');
+    if (clickedBtn) clickedBtn.classList.add('active');
+    ['pc', 'mobile'].forEach(d => {
+      const c = document.getElementById(`steps-${guideId}-${d}`);
+      const btn = document.getElementById(`add-step-btn-${guideId}-${d}`);
+      if (c) c.style.display = (d === device) ? '' : 'none';
+      if (btn) btn.style.display = (d === device) ? 'flex' : 'none';
+    });
+  }
+
+  function toggleDeviceTabs(guideId) {
+    const guide = guides.find(g => g.id === guideId);
+    if (!guide) return;
+
+    if (!guide.hasDeviceTabs) {
+      // 開啟分頁模式：若尚未設定過，將目前的教學內容複製成電腦版與手機版兩份初稿
+      if (!guide.deviceSteps) {
+        guide.deviceSteps = {
+          pc: JSON.parse(JSON.stringify(guide.steps)),
+          mobile: guide.steps.map(s => ({ ...s, id: s.id + '-mob' }))
+        };
+      }
+      guide.hasDeviceTabs = true;
+      guide.activeDeviceTab = guide.activeDeviceTab || 'pc';
+      showToast('✅ 已切換為手機／電腦分頁教學，內容已複製一份到雙邊，請分別編輯');
+    } else {
+      // 關閉分頁模式：把目前選中的分頁內容寫回單一教學（另一分頁內容保留，之後可再切回）
+      guide.steps = guide.deviceSteps[guide.activeDeviceTab || 'pc'];
+      guide.hasDeviceTabs = false;
+      showToast('已合併為單一教學（採用剛才選取的分頁內容）');
+    }
+
+    renderGuidePage(guide);
+    showSection('guide', guideId);
+    if (document.body.classList.contains('editing')) enableEditing(guideId, true);
+    autoSave();
   }
 
   function buildStepHtml(step, num, guideId) {
@@ -2958,18 +3066,28 @@
     const el = document.getElementById(stepId);
     if (!el) return;
     if (!confirm('確定要刪除此步驟嗎？')) return;
+    const container = el.closest('.steps-container');
     const guide = guides.find(g => g.id === guideId);
-    if (guide) guide.steps = guide.steps.filter(s => s.id !== stepId);
-    el.remove();
-    // Re-number remaining steps (preserve color/icon)
-    const container = document.getElementById('steps-' + guideId);
-    container.querySelectorAll('.step-block').forEach((block, i) => {
-      const n = block.querySelector('.step-number');
-      if (!n.dataset.customIcon) {
-        n.innerHTML = i + 1;
-        n.dataset.num = i + 1;
+    if (guide) {
+      if (guide.hasDeviceTabs && container && container.id.endsWith('-mobile')) {
+        guide.deviceSteps.mobile = guide.deviceSteps.mobile.filter(s => s.id !== stepId);
+      } else if (guide.hasDeviceTabs && container && container.id.endsWith('-pc')) {
+        guide.deviceSteps.pc = guide.deviceSteps.pc.filter(s => s.id !== stepId);
+      } else {
+        guide.steps = guide.steps.filter(s => s.id !== stepId);
       }
-    });
+    }
+    el.remove();
+    // Re-number remaining steps in the same container (preserve color/icon)
+    if (container) {
+      container.querySelectorAll('.step-block').forEach((block, i) => {
+        const n = block.querySelector('.step-number');
+        if (!n.dataset.customIcon) {
+          n.innerHTML = i + 1;
+          n.dataset.num = i + 1;
+        }
+      });
+    }
     showToast('🗑️ 已刪除步驟');
   }
 
@@ -3080,16 +3198,27 @@
   }
 
   // ── 新增步驟 ──
-  function addStep(guideId) {
+  function addStep(guideId, device) {
     const guide = guides.find(g => g.id === guideId);
-    stepCounter[guideId] = (stepCounter[guideId] || 0) + 1;
-    const num = stepCounter[guideId];
-    const step = { id: `${guideId}-s${num}`, title: `步驟 ${num}`, body: '請在此填寫步驟說明...' };
-    guide.steps.push(step);
+    const counterKey = guideId + (device ? '-' + device : '');
+    stepCounter[counterKey] = (stepCounter[counterKey] || 0) + 1;
+    const num = stepCounter[counterKey];
+    const step = { id: `${guideId}-${device ? device + '-' : ''}s${num}-${Date.now().toString(36)}`, title: `步驟 ${num}`, body: '請在此填寫步驟說明...' };
 
-    const stepsEl = document.getElementById(`steps-${guideId}`);
+    let targetArray, containerId;
+    if (device && guide.deviceSteps) {
+      guide.deviceSteps[device].push(step);
+      targetArray = guide.deviceSteps[device];
+      containerId = `steps-${guideId}-${device}`;
+    } else {
+      guide.steps.push(step);
+      targetArray = guide.steps;
+      containerId = `steps-${guideId}`;
+    }
+
+    const stepsEl = document.getElementById(containerId);
     const div = document.createElement('div');
-    div.innerHTML = buildStepHtml(step, num, guideId);
+    div.innerHTML = buildStepHtml(step, targetArray.length, guideId);
     stepsEl.appendChild(div.firstElementChild);
     if (document.body.classList.contains('editing')) enableEditing(guideId, true);
     showToast('✅ 已新增步驟');
@@ -3309,22 +3438,34 @@
     if (!guide || !page) return;
 
     // 1) 步驟標題與內文（依目前 DOM 順序重建，順序也一併同步）
-    const stepBlocks = page.querySelectorAll(`#steps-${guideId} .step-block`);
-    const domSteps = [];
-    stepBlocks.forEach(block => {
-      const id = block.id;
-      const titleEl = block.querySelector('.step-title');
-      const bodyEl = block.querySelector('.step-body');
-      const numEl = block.querySelector('.step-number');
-      const existing = guide.steps.find(s => s.id === id) || {};
-      domSteps.push({
-        id,
-        title: titleEl ? titleEl.textContent.trim() : (existing.title || ''),
-        body: bodyEl ? bodyEl.textContent.trim() : (existing.body || ''),
-        icon: numEl && numEl.dataset.customIcon ? numEl.dataset.customIcon : (existing.icon || null)
+    function readStepsFromContainer(containerId) {
+      const stepBlocks = page.querySelectorAll(`#${containerId} .step-block`);
+      const result = [];
+      stepBlocks.forEach(block => {
+        const id = block.id;
+        const titleEl = block.querySelector('.step-title');
+        const bodyEl = block.querySelector('.step-body');
+        const numEl = block.querySelector('.step-number');
+        result.push({
+          id,
+          title: titleEl ? titleEl.textContent.trim() : '',
+          body: bodyEl ? bodyEl.textContent.trim() : '',
+          icon: numEl && numEl.dataset.customIcon ? numEl.dataset.customIcon : null
+        });
       });
-    });
-    if (domSteps.length > 0) guide.steps = domSteps;
+      return result;
+    }
+
+    if (guide.hasDeviceTabs) {
+      const pcSteps = readStepsFromContainer(`steps-${guideId}-pc`);
+      const mobileSteps = readStepsFromContainer(`steps-${guideId}-mobile`);
+      if (!guide.deviceSteps) guide.deviceSteps = { pc: [], mobile: [] };
+      if (pcSteps.length > 0) guide.deviceSteps.pc = pcSteps;
+      if (mobileSteps.length > 0) guide.deviceSteps.mobile = mobileSteps;
+    } else {
+      const domSteps = readStepsFromContainer(`steps-${guideId}`);
+      if (domSteps.length > 0) guide.steps = domSteps;
+    }
 
     // 2) 注意事項
     const noticeTitleEl = page.querySelector('.notice-title');
@@ -4032,7 +4173,13 @@
           links: g.links,
           contactPhone: g.contactPhone,
           address: g.address,
-          linksHidden: g.linksHidden
+          linksHidden: g.linksHidden,
+          hasDeviceTabs: g.hasDeviceTabs,
+          activeDeviceTab: g.activeDeviceTab,
+          deviceSteps: g.deviceSteps ? {
+            pc: (g.deviceSteps.pc || []).map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon })),
+            mobile: (g.deviceSteps.mobile || []).map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon }))
+          } : undefined
         })),
         catIcons,
         siteTitle: document.getElementById('site-title')?.textContent,
@@ -4145,7 +4292,13 @@
         links: g.links,
         contactPhone: g.contactPhone,
         address: g.address,
-        linksHidden: g.linksHidden
+        linksHidden: g.linksHidden,
+        hasDeviceTabs: g.hasDeviceTabs,
+        activeDeviceTab: g.activeDeviceTab,
+        deviceSteps: g.deviceSteps ? {
+          pc: (g.deviceSteps.pc || []).map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon })),
+          mobile: (g.deviceSteps.mobile || []).map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon }))
+        } : undefined
       })),
       catIcons,
       siteTitle: document.getElementById('site-title')?.textContent,
@@ -4227,10 +4380,11 @@
   function stepDrop(e, targetId, guideId) {
     e.preventDefault();
     if (!_dragSrcId || _dragSrcId === targetId) return;
-    const container = document.getElementById('steps-' + guideId);
     const srcEl = document.getElementById(_dragSrcId);
     const tgtEl = document.getElementById(targetId);
-    if (!srcEl || !tgtEl || !container) return;
+    if (!srcEl || !tgtEl) return;
+    const container = srcEl.closest('.steps-container');
+    if (!container) return;
     // DOM swap
     const allBlocks = [...container.querySelectorAll('.step-block')];
     const srcIdx = allBlocks.indexOf(srcEl);
