@@ -3630,6 +3630,7 @@
 
   // ── 字體與字型大小工具 ──
   let _activeEditEl = null;
+  let _savedRange = null; // 記住最後一次「有效選取範圍」，因為點擊工具列時瀏覽器會清空原本的文字選取
 
   document.addEventListener('selectionchange', () => {
     if (!document.body.classList.contains('editing')) return;
@@ -3640,6 +3641,7 @@
       const el = node && node.nodeType === 3 ? node.parentElement : node;
       if (el && el.isContentEditable) {
         _activeEditEl = el;
+        _savedRange = sel.getRangeAt(0).cloneRange(); // 保存選取範圍，供稍後點擊工具列時還原
         // Reflect current computed style in toolbar
         const cs = window.getComputedStyle(el);
         document.getElementById('tb-size').value = Math.round(parseFloat(cs.fontSize)) || 15;
@@ -3647,25 +3649,41 @@
     }
   });
 
+  // 在套用樣式前，把剛才記住的選取範圍還原回畫面上
+  // 回傳 true 代表確實有一段文字被選取；false 代表沒有選取（應套用到整個欄位）
+  function restoreSavedSelection() {
+    if (!_savedRange) return false;
+    try {
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(_savedRange);
+      return !sel.isCollapsed;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function applyFont(font) {
-    const sel = window.getSelection();
-    if (!sel || sel.isCollapsed) {
-      // Apply to whole element
+    const hasSelection = restoreSavedSelection();
+    if (!hasSelection) {
+      // 沒有選取文字，套用到整個欄位
       if (_activeEditEl) _activeEditEl.style.fontFamily = font;
       return;
     }
     document.execCommand('fontName', false, font);
+    _savedRange = null;
   }
 
   function applySize(size) {
     size = parseInt(size);
     if (!size || size < 8 || size > 80) return;
-    const sel = window.getSelection();
-    if (!sel || sel.isCollapsed) {
+    const hasSelection = restoreSavedSelection();
+    if (!hasSelection) {
       if (_activeEditEl) _activeEditEl.style.fontSize = size + 'px';
       return;
     }
     // Wrap selection in a span with font-size
+    const sel = window.getSelection();
     const range = sel.getRangeAt(0);
     const span = document.createElement('span');
     span.style.fontSize = size + 'px';
@@ -3674,14 +3692,21 @@
       if (_activeEditEl) _activeEditEl.style.fontSize = size + 'px';
     }
     sel.removeAllRanges();
+    _savedRange = null;
   }
 
   function applyBold() {
+    const hasSelection = restoreSavedSelection();
+    if (!hasSelection) { showToast('請先選取文字再套用粗體'); return; }
     document.execCommand('bold', false, null);
+    _savedRange = null;
   }
 
   function applyItalic() {
+    const hasSelection = restoreSavedSelection();
+    if (!hasSelection) { showToast('請先選取文字再套用斜體'); return; }
     document.execCommand('italic', false, null);
+    _savedRange = null;
   }
 
   // ── 字體顏色 ──
@@ -3701,13 +3726,14 @@
   }
 
   function applyColor(color) {
-    const sel = window.getSelection();
-    if (!sel || sel.isCollapsed) {
+    const hasSelection = restoreSavedSelection();
+    if (!hasSelection) {
       // 未選取文字時，套用到整個欄位
       if (_activeEditEl) _activeEditEl.style.color = color;
       return;
     }
     document.execCommand('foreColor', false, color);
+    _savedRange = null;
   }
 
   // ── FAQ 開合 ──
