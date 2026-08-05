@@ -809,6 +809,24 @@
   }
   .font-toolbar button:hover { background: rgba(255,255,255,0.25); }
   .font-toolbar .tb-hint { color: rgba(255,255,255,0.4); font-size: 11px; }
+  .tb-color-swatches { display: flex; gap: 3px; }
+  .tb-color-sw {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    cursor: pointer;
+    transition: transform 0.12s;
+    flex-shrink: 0;
+  }
+  .tb-color-sw:hover { transform: scale(1.2); border-color: white; }
+  #tb-color-custom {
+    width: 26px; height: 22px;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 4px;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+  }
 
   /* ── 注意事項可編輯 ── */
   .notice-title[contenteditable="true"],
@@ -1662,6 +1680,10 @@
   <button onclick="applyBold()" title="粗體"><b>B</b></button>
   <button onclick="applyItalic()" title="斜體"><i>I</i></button>
   <div class="tb-sep"></div>
+  <label>顏色</label>
+  <div class="tb-color-swatches" id="tb-color-swatches"></div>
+  <input type="color" id="tb-color-custom" value="#c8502a" onchange="applyColor(this.value)" title="自訂顏色">
+  <div class="tb-sep"></div>
   <span class="tb-hint">選取文字後套用樣式</span>
 </div>
 
@@ -2058,6 +2080,7 @@
     showSection('home');
     showSaveStatus('');
     setTimeout(updateTitleLayout, 120);
+    initColorSwatches();
 
     // 監聽頁面關閉前自動儲存
     window.addEventListener('beforeunload', saveToStorage);
@@ -2622,9 +2645,44 @@
     autoSave();
   }
 
+  function buildMediaBlockHtml(m) {
+    if (!m) return '';
+    if (m.type === 'video' && m.videoId) {
+      const blockId = 'vidblock-' + Math.random().toString(36).slice(2, 10);
+      const thumbUrl = `https://img.youtube.com/vi/${m.videoId}/maxresdefault.jpg`;
+      return `
+        <div class="media-block video-block" id="${blockId}" data-video-id="${m.videoId}">
+          <button class="btn-del-media" onclick="removeMediaBlock('${blockId}')" title="移除此影片">✕</button>
+          <div class="video-card" onclick="openVideoModal('${m.videoId}')">
+            <img class="video-thumb" src="${thumbUrl}" onerror="this.src='https://img.youtube.com/vi/${m.videoId}/hqdefault.jpg'" alt="影片縮圖">
+            <div class="video-play-overlay">
+              <div class="video-play-btn"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+              <div style="color:white;font-size:12px;opacity:0.85">點擊播放影片</div>
+            </div>
+            <div class="video-title-bar">YouTube 影片</div>
+          </div>
+        </div>`;
+    }
+    if (m.type === 'image' && m.src) {
+      const blockId = 'imgblock-' + Math.random().toString(36).slice(2, 10);
+      return `
+        <div class="media-block" id="${blockId}">
+          <button class="btn-del-media" onclick="removeMediaBlock('${blockId}')" title="移除此圖片">✕</button>
+          <div class="image-upload-zone has-image">
+            <input type="file" accept="image/*" onchange="handleImageUpload(event, this.parentElement)" style="position:absolute;inset:0;opacity:0;cursor:pointer;z-index:2">
+            <img src="${m.src}" style="width:100%;height:100%;object-fit:contain;border-radius:8px;display:block">
+            <div class="image-overlay">🔄 更換圖片</div>
+            <div class="resize-hint">⤡ 拖曳調整大小</div>
+          </div>
+        </div>`;
+    }
+    return '';
+  }
+
   function buildStepHtml(step, num, guideId) {
     const icon = step.icon || null;
     const numDisplay = icon ? `<span style="font-size:1.2rem">${icon}</span>` : num;
+    const mediaHtml = (step.media || []).map(m => buildMediaBlockHtml(m)).join('');
     return `
       <div class="step-block" id="${step.id}" draggable="false"
         ondragstart="stepDragStart(event,'${step.id}')"
@@ -2640,7 +2698,7 @@
             <button class="btn-del-step" onclick="deleteStep('${step.id}','${guideId}')" title="刪除此步驟">✕ 刪除步驟</button>
           </div>
           <div class="step-body" data-field="body">${step.body}</div>
-          <div class="step-media" id="media-${step.id}"></div>
+          <div class="step-media" id="media-${step.id}">${mediaHtml}</div>
           <div class="step-media-controls">
             <button class="btn-media" onclick="addImageBlock('${step.id}')">🖼️ 加入圖片</button>
             <button class="btn-media" onclick="focusStepForPaste('${step.id}')" title="點擊後直接按 Ctrl+V 貼上剪貼簿截圖">📸 貼上截圖</button>
@@ -2947,6 +3005,7 @@
     if (!_seCanvas || !_seTargetInfo) { closeScreenshotEditor(); return; }
     const dataUrl = _seCanvas.toDataURL('image/png');
     const info = _seTargetInfo;
+    let syncGuideId = null;
 
     if (info.mode === 'zone' && info.zoneEl) {
       info.zoneEl.innerHTML = `
@@ -2955,6 +3014,8 @@
         <div class="image-overlay">🔄 更換圖片</div>
         <div class="resize-hint">⤡ 拖曳調整大小</div>`;
       info.zoneEl.classList.add('has-image');
+      const stepBlock = info.zoneEl.closest('.step-block');
+      if (stepBlock) syncGuideId = getGuideIdFromStepId(stepBlock.id);
     } else if (info.mode === 'newBlock' && info.stepId) {
       const media = document.getElementById('media-' + info.stepId);
       if (media) {
@@ -2963,7 +3024,7 @@
         wrap.className = 'media-block';
         wrap.id = blockId;
         wrap.innerHTML = `
-          <button class="btn-del-media" onclick="document.getElementById('${blockId}').remove();showToast('🗑️ 已移除圖片')" title="移除此圖片">✕</button>
+          <button class="btn-del-media" onclick="removeMediaBlock('${blockId}')" title="移除此圖片">✕</button>
           <div class="image-upload-zone has-image">
             <input type="file" accept="image/*" onchange="handleImageUpload(event, this.parentElement)" style="position:absolute;inset:0;opacity:0;cursor:pointer;z-index:2">
             <img src="${dataUrl}" style="width:100%;height:100%;object-fit:contain;border-radius:8px;display:block">
@@ -2971,8 +3032,10 @@
             <div class="resize-hint">⤡ 拖曳調整大小</div>
           </div>`;
         media.appendChild(wrap);
+        syncGuideId = getGuideIdFromStepId(info.stepId);
       }
     }
+    if (syncGuideId) { syncGuideFromDOM(syncGuideId); }
     autoSave();
     showToast('✅ 圖片已插入');
     closeScreenshotEditor();
@@ -2987,7 +3050,7 @@
     wrap.className = 'media-block';
     wrap.id = blockId;
     wrap.innerHTML = `
-      <button class="btn-del-media" onclick="document.getElementById('${blockId}').remove();showToast('🗑️ 已移除圖片')" title="移除此圖片">✕</button>
+      <button class="btn-del-media" onclick="removeMediaBlock('${blockId}')" title="移除此圖片">✕</button>
       <div class="image-upload-zone" onclick="triggerUpload(this)">
         <input type="file" accept="image/*" onchange="handleImageUpload(event, this.parentElement)">
         <div class="upload-icon">🖼️</div>
@@ -3001,6 +3064,26 @@
   }
 
   // 新增 YouTube 影片區塊（縮圖卡片，點擊彈窗播放）
+  // ── 媒體區塊統一刪除／同步輔助 ──
+  function getGuideIdFromStepId(stepId) {
+    const stepEl = document.getElementById(stepId);
+    const page = stepEl ? stepEl.closest('.guide-page') : null;
+    return page ? page.id : null;
+  }
+
+  function removeMediaBlock(blockId) {
+    const el = document.getElementById(blockId);
+    if (!el) return;
+    const stepBlock = el.closest('.step-block');
+    const isVideo = el.classList.contains('video-block');
+    el.remove();
+    if (stepBlock) {
+      const guideId = getGuideIdFromStepId(stepBlock.id);
+      if (guideId) { syncGuideFromDOM(guideId); autoSave(); }
+    }
+    showToast(isVideo ? '🗑️ 已移除影片' : '🗑️ 已移除圖片');
+  }
+
   function addVideoBlock(stepId) {
     const url = prompt('請貼上 YouTube 影片網址：', 'https://www.youtube.com/watch?v=');
     if (!url) return;
@@ -3013,8 +3096,9 @@
     const wrap = document.createElement('div');
     wrap.className = 'media-block video-block';
     wrap.id = blockId;
+    wrap.dataset.videoId = videoId;
     wrap.innerHTML = `
-      <button class="btn-del-media" onclick="document.getElementById('${blockId}').remove();showToast('🗑️ 已移除影片')" title="移除此影片">✕</button>
+      <button class="btn-del-media" onclick="removeMediaBlock('${blockId}')" title="移除此影片">✕</button>
       <div class="video-card" onclick="openVideoModal('${videoId}')">
         <img class="video-thumb"
           src="${thumbUrl}"
@@ -3029,6 +3113,8 @@
         <div class="video-title-bar">YouTube 影片</div>
       </div>`;
     media.appendChild(wrap);
+    const guideId = getGuideIdFromStepId(stepId);
+    if (guideId) { syncGuideFromDOM(guideId); autoSave(); }
     showToast('✅ 已加入 YouTube 影片（點縮圖播放）');
   }
 
@@ -3437,7 +3523,30 @@
     const page = document.getElementById(guideId);
     if (!guide || !page) return;
 
+    // 讀取單一步驟的圖片/影片，轉換為可儲存的資料格式
+    function readStepMedia(block) {
+      const mediaEl = block.querySelector('.step-media');
+      const media = [];
+      if (!mediaEl) return media;
+      mediaEl.querySelectorAll('.media-block').forEach(mb => {
+        if (mb.classList.contains('video-block')) {
+          let videoId = mb.dataset.videoId;
+          if (!videoId) {
+            const card = mb.querySelector('.video-card');
+            const m = card && card.getAttribute('onclick') ? card.getAttribute('onclick').match(/openVideoModal\('([^']+)'\)/) : null;
+            videoId = m ? m[1] : null;
+          }
+          if (videoId) media.push({ type: 'video', videoId });
+        } else {
+          const img = mb.querySelector('img');
+          if (img && img.src) media.push({ type: 'image', src: img.src });
+        }
+      });
+      return media;
+    }
+
     // 1) 步驟標題與內文（依目前 DOM 順序重建，順序也一併同步）
+    // 內文使用 innerHTML 讀取，保留換行（<br>）與局部文字格式（顏色/大小/粗斜體）
     function readStepsFromContainer(containerId) {
       const stepBlocks = page.querySelectorAll(`#${containerId} .step-block`);
       const result = [];
@@ -3448,9 +3557,10 @@
         const numEl = block.querySelector('.step-number');
         result.push({
           id,
-          title: titleEl ? titleEl.textContent.trim() : '',
-          body: bodyEl ? bodyEl.textContent.trim() : '',
-          icon: numEl && numEl.dataset.customIcon ? numEl.dataset.customIcon : null
+          title: titleEl ? titleEl.innerHTML.trim() : '',
+          body: bodyEl ? bodyEl.innerHTML.trim() : '',
+          icon: numEl && numEl.dataset.customIcon ? numEl.dataset.customIcon : null,
+          media: readStepMedia(block)
         });
       });
       return result;
@@ -3467,13 +3577,13 @@
       if (domSteps.length > 0) guide.steps = domSteps;
     }
 
-    // 2) 注意事項
+    // 2) 注意事項（內文用 innerHTML 保留換行與格式）
     const noticeTitleEl = page.querySelector('.notice-title');
     const noticeBodyEl = page.querySelector('.notice-body');
     if (noticeTitleEl || noticeBodyEl) {
       guide.notice = {
-        title: noticeTitleEl ? noticeTitleEl.textContent.trim() : '注意事項',
-        body: noticeBodyEl ? noticeBodyEl.textContent.trim() : ''
+        title: noticeTitleEl ? noticeTitleEl.innerHTML.trim() : '注意事項',
+        body: noticeBodyEl ? noticeBodyEl.innerHTML.trim() : ''
       };
     }
 
@@ -3501,7 +3611,7 @@
       guide.table = { headers, rows };
     }
 
-    // 4) 常見問題（標題 + 問答重建，順序依 DOM）
+    // 4) 常見問題（標題 + 問答重建，順序依 DOM；答案用 innerHTML 保留換行與格式）
     const faqTitleEl = page.querySelector('.faq-section-title');
     if (faqTitleEl) guide.faqSectionTitle = faqTitleEl.textContent.trim();
 
@@ -3511,8 +3621,8 @@
       const qEl = item.querySelector('.faq-question-text');
       const aEl = item.querySelector('.faq-answer');
       domFaq.push({
-        q: qEl ? qEl.textContent.trim() : '',
-        a: aEl ? aEl.textContent.trim() : ''
+        q: qEl ? qEl.innerHTML.trim() : '',
+        a: aEl ? aEl.innerHTML.trim() : ''
       });
     });
     guide.faq = domFaq;
@@ -3572,6 +3682,32 @@
 
   function applyItalic() {
     document.execCommand('italic', false, null);
+  }
+
+  // ── 字體顏色 ──
+  const TB_COLORS = ['#1a1a2e', '#c8502a', '#b8952a', '#2d6a4f', '#1d4e89', '#6b3fa0', '#c0392b', '#e67e22', '#27ae60', '#3498db', '#9b59b6', '#ffffff'];
+
+  function initColorSwatches() {
+    const wrap = document.getElementById('tb-color-swatches');
+    if (!wrap || wrap.children.length > 0) return;
+    TB_COLORS.forEach(c => {
+      const sw = document.createElement('div');
+      sw.className = 'tb-color-sw';
+      sw.style.background = c;
+      sw.title = c;
+      sw.onclick = () => applyColor(c);
+      wrap.appendChild(sw);
+    });
+  }
+
+  function applyColor(color) {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) {
+      // 未選取文字時，套用到整個欄位
+      if (_activeEditEl) _activeEditEl.style.color = color;
+      return;
+    }
+    document.execCommand('foreColor', false, color);
   }
 
   // ── FAQ 開合 ──
@@ -4164,7 +4300,7 @@
         guides: guides.map(g => ({
           id: g.id, title: g.title, category: g.category,
           icon: g.icon, desc: g.desc,
-          steps: g.steps.map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon })),
+          steps: g.steps.map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon, media: s.media || [] })),
           table: g.table,
           notice: g.notice,
           tableSectionTitle: g.tableSectionTitle,
@@ -4177,8 +4313,8 @@
           hasDeviceTabs: g.hasDeviceTabs,
           activeDeviceTab: g.activeDeviceTab,
           deviceSteps: g.deviceSteps ? {
-            pc: (g.deviceSteps.pc || []).map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon })),
-            mobile: (g.deviceSteps.mobile || []).map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon }))
+            pc: (g.deviceSteps.pc || []).map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon, media: s.media || [] })),
+            mobile: (g.deviceSteps.mobile || []).map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon, media: s.media || [] }))
           } : undefined
         })),
         catIcons,
@@ -4283,7 +4419,7 @@
       guides: guides.map(g => ({
         id: g.id, title: g.title, category: g.category,
         icon: g.icon, desc: g.desc,
-        steps: g.steps.map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon })),
+        steps: g.steps.map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon, media: s.media || [] })),
         table: g.table,
         notice: g.notice,
         tableSectionTitle: g.tableSectionTitle,
@@ -4296,8 +4432,8 @@
         hasDeviceTabs: g.hasDeviceTabs,
         activeDeviceTab: g.activeDeviceTab,
         deviceSteps: g.deviceSteps ? {
-          pc: (g.deviceSteps.pc || []).map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon })),
-          mobile: (g.deviceSteps.mobile || []).map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon }))
+          pc: (g.deviceSteps.pc || []).map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon, media: s.media || [] })),
+          mobile: (g.deviceSteps.mobile || []).map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon, media: s.media || [] }))
         } : undefined
       })),
       catIcons,
