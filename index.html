@@ -809,6 +809,16 @@
   }
   .font-toolbar button:hover { background: rgba(255,255,255,0.25); }
   .font-toolbar .tb-hint { color: rgba(255,255,255,0.4); font-size: 11px; }
+
+  /* ── 內文超連結樣式 ── */
+  .step-body a, .notice-body a, .faq-answer a, .step-title a, .faq-question-text a {
+    color: var(--blue);
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    cursor: pointer;
+  }
+  .step-body a:hover, .notice-body a:hover, .faq-answer a:hover,
+  .step-title a:hover, .faq-question-text a:hover { text-decoration-style: solid; }
   .tb-color-swatches { display: flex; gap: 3px; }
   .tb-color-sw {
     width: 18px; height: 18px;
@@ -1684,6 +1694,9 @@
   <div class="tb-color-swatches" id="tb-color-swatches"></div>
   <input type="color" id="tb-color-custom" value="#c8502a" onchange="applyColor(this.value)" title="自訂顏色">
   <div class="tb-sep"></div>
+  <button onclick="applyLink()" title="加入超連結">🔗</button>
+  <button onclick="removeLink()" title="移除超連結">⛓️‍💥</button>
+  <div class="tb-sep"></div>
   <span class="tb-hint">選取文字後套用樣式</span>
 </div>
 
@@ -2403,7 +2416,7 @@
 
       <div class="device-tab-header">
         <h2 style="font-family:'Noto Serif TC',serif;font-size:1.1rem;color:var(--ink);margin:0">📌 申辦步驟</h2>
-        <button class="btn-toolbar btn-device-toggle" onclick="toggleDeviceTabs('${guide.id}')" title="切換為手機/電腦分頁教學">${guide.hasDeviceTabs ? '🔗 合併為單一教學' : '📱💻 分成手機/電腦版'}</button>
+        <button class="btn-toolbar btn-device-toggle" onclick="toggleMobileTab('${guide.id}')" title="${guide.hasMobileTab ? '移除手機版教學（電腦版不受影響）' : '新增獨立的手機版教學（電腦版不受影響）'}">${guide.hasMobileTab ? '🗑️ 移除手機版教學' : '➕ 新增手機版教學'}</button>
       </div>
       ${buildStepsSectionHtml(guide)}
 
@@ -2579,15 +2592,16 @@
   // ── 手機 / 電腦分頁教學功能 ──
   // ══════════════════════════════════════════════════
   function buildStepsSectionHtml(guide) {
-    if (!guide.hasDeviceTabs) {
+    if (!guide.hasMobileTab) {
       const stepsHtml = guide.steps.map((s, i) => buildStepHtml(s, i + 1, guide.id)).join('');
       return `
       <div class="steps-container" id="steps-${guide.id}">${stepsHtml}</div>
       <button class="add-step-btn" onclick="addStep('${guide.id}')">＋ 新增步驟</button>`;
     }
+    // 手機版教學為附加內容，電腦版永遠使用 guide.steps 本體（不複製、不覆蓋）
     const active = guide.activeDeviceTab || 'pc';
-    const pcSteps = (guide.deviceSteps && guide.deviceSteps.pc) || [];
-    const mobileSteps = (guide.deviceSteps && guide.deviceSteps.mobile) || [];
+    const pcSteps = guide.steps;
+    const mobileSteps = guide.mobileSteps || [];
     const pcHtml = pcSteps.map((s, i) => buildStepHtml(s, i + 1, guide.id)).join('');
     const mobileHtml = mobileSteps.map((s, i) => buildStepHtml(s, i + 1, guide.id)).join('');
     return `
@@ -2602,6 +2616,8 @@
   }
 
   function switchDeviceTab(guideId, device) {
+    // 切換分頁前，先同步目前畫面上的編輯內容，避免切換瞬間遺失剛輸入的文字
+    if (document.body.classList.contains('editing')) syncGuideFromDOM(guideId);
     const guide = guides.find(g => g.id === guideId);
     if (guide) guide.activeDeviceTab = device;
     const page = document.getElementById(guideId);
@@ -2615,28 +2631,36 @@
       if (c) c.style.display = (d === device) ? '' : 'none';
       if (btn) btn.style.display = (d === device) ? 'flex' : 'none';
     });
+    autoSave();
   }
 
-  function toggleDeviceTabs(guideId) {
+  function toggleMobileTab(guideId) {
     const guide = guides.find(g => g.id === guideId);
     if (!guide) return;
 
-    if (!guide.hasDeviceTabs) {
-      // 開啟分頁模式：若尚未設定過，將目前的教學內容複製成電腦版與手機版兩份初稿
-      if (!guide.deviceSteps) {
-        guide.deviceSteps = {
-          pc: JSON.parse(JSON.stringify(guide.steps)),
-          mobile: guide.steps.map(s => ({ ...s, id: s.id + '-mob' }))
-        };
+    // 切換前，先把畫面上正在編輯、尚未點「儲存」的內容同步回資料，避免遺失剛輸入的文字
+    if (document.body.classList.contains('editing')) {
+      syncGuideFromDOM(guideId);
+    }
+
+    if (!guide.hasMobileTab) {
+      // 新增手機版教學：純附加，「電腦版」guide.steps 本體完全不會被複製或覆蓋
+      if (!guide.mobileSteps || guide.mobileSteps.length === 0) {
+        const copyFromPc = confirm('是否要複製「電腦版」目前的步驟內容，作為手機版的起始草稿？\n\n按「確定」：複製一份，兩邊各自獨立編輯\n按「取消」：手機版從空白步驟開始');
+        if (copyFromPc) {
+          guide.mobileSteps = guide.steps.map(s => ({ ...JSON.parse(JSON.stringify(s)), id: s.id + '-mob-' + Date.now().toString(36) }));
+        } else {
+          guide.mobileSteps = [{ id: `${guideId}-mob-s1-${Date.now().toString(36)}`, title: '步驟一：準備', body: '請在此填寫手機版步驟說明...' }];
+        }
       }
-      guide.hasDeviceTabs = true;
-      guide.activeDeviceTab = guide.activeDeviceTab || 'pc';
-      showToast('✅ 已切換為手機／電腦分頁教學，內容已複製一份到雙邊，請分別編輯');
+      guide.hasMobileTab = true;
+      guide.activeDeviceTab = 'mobile';
+      showToast('✅ 已新增手機版教學，電腦版內容完全不受影響');
     } else {
-      // 關閉分頁模式：把目前選中的分頁內容寫回單一教學（另一分頁內容保留，之後可再切回）
-      guide.steps = guide.deviceSteps[guide.activeDeviceTab || 'pc'];
-      guide.hasDeviceTabs = false;
-      showToast('已合併為單一教學（採用剛才選取的分頁內容）');
+      if (!confirm('確定要移除手機版教學嗎？\n\n手機版內容不會被刪除，只是先隱藏，之後可以再重新開啟。電腦版內容不受影響。')) return;
+      guide.hasMobileTab = false;
+      guide.activeDeviceTab = 'pc';
+      showToast('已移除手機版教學（內容已保留，電腦版維持不變）');
     }
 
     renderGuidePage(guide);
@@ -3155,11 +3179,10 @@
     const container = el.closest('.steps-container');
     const guide = guides.find(g => g.id === guideId);
     if (guide) {
-      if (guide.hasDeviceTabs && container && container.id.endsWith('-mobile')) {
-        guide.deviceSteps.mobile = guide.deviceSteps.mobile.filter(s => s.id !== stepId);
-      } else if (guide.hasDeviceTabs && container && container.id.endsWith('-pc')) {
-        guide.deviceSteps.pc = guide.deviceSteps.pc.filter(s => s.id !== stepId);
+      if (guide.hasMobileTab && container && container.id.endsWith('-mobile')) {
+        guide.mobileSteps = (guide.mobileSteps || []).filter(s => s.id !== stepId);
       } else {
+        // PC 分頁（-pc 或無後綴的單一模式）一律對應 guide.steps 本體
         guide.steps = guide.steps.filter(s => s.id !== stepId);
       }
     }
@@ -3292,10 +3315,15 @@
     const step = { id: `${guideId}-${device ? device + '-' : ''}s${num}-${Date.now().toString(36)}`, title: `步驟 ${num}`, body: '請在此填寫步驟說明...' };
 
     let targetArray, containerId;
-    if (device && guide.deviceSteps) {
-      guide.deviceSteps[device].push(step);
-      targetArray = guide.deviceSteps[device];
-      containerId = `steps-${guideId}-${device}`;
+    if (device === 'mobile') {
+      if (!guide.mobileSteps) guide.mobileSteps = [];
+      guide.mobileSteps.push(step);
+      targetArray = guide.mobileSteps;
+      containerId = `steps-${guideId}-mobile`;
+    } else if (device === 'pc') {
+      guide.steps.push(step);
+      targetArray = guide.steps;
+      containerId = `steps-${guideId}-pc`;
     } else {
       guide.steps.push(step);
       targetArray = guide.steps;
@@ -3566,12 +3594,12 @@
       return result;
     }
 
-    if (guide.hasDeviceTabs) {
+    if (guide.hasMobileTab) {
       const pcSteps = readStepsFromContainer(`steps-${guideId}-pc`);
       const mobileSteps = readStepsFromContainer(`steps-${guideId}-mobile`);
-      if (!guide.deviceSteps) guide.deviceSteps = { pc: [], mobile: [] };
-      if (pcSteps.length > 0) guide.deviceSteps.pc = pcSteps;
-      if (mobileSteps.length > 0) guide.deviceSteps.mobile = mobileSteps;
+      if (pcSteps.length > 0) guide.steps = pcSteps;
+      if (!guide.mobileSteps) guide.mobileSteps = [];
+      if (mobileSteps.length > 0) guide.mobileSteps = mobileSteps;
     } else {
       const domSteps = readStepsFromContainer(`steps-${guideId}`);
       if (domSteps.length > 0) guide.steps = domSteps;
@@ -3734,6 +3762,40 @@
     }
     document.execCommand('foreColor', false, color);
     _savedRange = null;
+  }
+
+  // ── 超連結 ──
+  function applyLink() {
+    const hasSelection = restoreSavedSelection();
+    if (!hasSelection) { showToast('請先選取要加上連結的文字'); return; }
+    let url = prompt('請輸入連結網址（需包含 https://）：', 'https://');
+    if (!url || !url.trim()) return;
+    url = url.trim();
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+    document.execCommand('createLink', false, url);
+
+    // 找到剛建立的連結，補上開新分頁與樣式 class
+    const sel = window.getSelection();
+    if (sel && sel.anchorNode) {
+      const node = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode;
+      const linkEl = node ? node.closest('a') : null;
+      if (linkEl) {
+        linkEl.target = '_blank';
+        linkEl.rel = 'noopener';
+        linkEl.classList.add('editable-link');
+      }
+    }
+    _savedRange = null;
+    showToast('✅ 已加入超連結');
+  }
+
+  function removeLink() {
+    const hasSelection = restoreSavedSelection();
+    if (!hasSelection) { showToast('請先選取連結文字再移除'); return; }
+    document.execCommand('unlink', false, null);
+    _savedRange = null;
+    showToast('已移除超連結');
   }
 
   // ── FAQ 開合 ──
@@ -4336,12 +4398,9 @@
           contactPhone: g.contactPhone,
           address: g.address,
           linksHidden: g.linksHidden,
-          hasDeviceTabs: g.hasDeviceTabs,
+          hasMobileTab: g.hasMobileTab,
           activeDeviceTab: g.activeDeviceTab,
-          deviceSteps: g.deviceSteps ? {
-            pc: (g.deviceSteps.pc || []).map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon, media: s.media || [] })),
-            mobile: (g.deviceSteps.mobile || []).map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon, media: s.media || [] }))
-          } : undefined
+          mobileSteps: (g.mobileSteps || []).map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon, media: s.media || [] }))
         })),
         catIcons,
         siteTitle: document.getElementById('site-title')?.textContent,
@@ -4422,6 +4481,19 @@
   // 套用內容資料（localStorage 和 content.json 共用）
   function applyContentData(data) {
     guides = data.guides;
+    // 資料遷移：舊版「分頁互轉」機制（hasDeviceTabs / deviceSteps）轉換為新版「附加手機版」機制
+    // 避免曾用過舊功能的使用者，因欄位改名而讓資料看起來消失
+    guides.forEach(g => {
+      if (g.hasDeviceTabs !== undefined && g.hasMobileTab === undefined) {
+        if (g.deviceSteps && g.deviceSteps.pc && g.deviceSteps.pc.length > 0) {
+          g.steps = g.deviceSteps.pc;
+        }
+        g.mobileSteps = (g.deviceSteps && g.deviceSteps.mobile) || [];
+        g.hasMobileTab = !!g.hasDeviceTabs;
+        delete g.deviceSteps;
+        delete g.hasDeviceTabs;
+      }
+    });
     catIcons = data.catIcons || catIcons;
     const setEl = (id, val) => { if (!val) return; setTimeout(() => { const el = document.getElementById(id); if (el) el.textContent = val; }, 50); };
     if (data.siteTitle) {
@@ -4455,12 +4527,9 @@
         contactPhone: g.contactPhone,
         address: g.address,
         linksHidden: g.linksHidden,
-        hasDeviceTabs: g.hasDeviceTabs,
+        hasMobileTab: g.hasMobileTab,
         activeDeviceTab: g.activeDeviceTab,
-        deviceSteps: g.deviceSteps ? {
-          pc: (g.deviceSteps.pc || []).map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon, media: s.media || [] })),
-          mobile: (g.deviceSteps.mobile || []).map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon, media: s.media || [] }))
-        } : undefined
+        mobileSteps: (g.mobileSteps || []).map(s => ({ id: s.id, title: s.title, body: s.body, icon: s.icon, media: s.media || [] }))
       })),
       catIcons,
       siteTitle: document.getElementById('site-title')?.textContent,
