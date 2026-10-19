@@ -1916,7 +1916,7 @@ aside{background:rgba(255,255,255,0.7);border-right:1px solid var(--border)}
   <div class="modal" style="max-width:480px">
     <h3>⚙️ 內容管理</h3>
     <div style="font-size:11px;color:var(--ink-light);background:var(--paper-warm);border-radius:6px;padding:5px 10px;margin-bottom:1rem;display:inline-block">
-      程式版本：<b id="app-version">2026.10.18-anim</b>（用來確認網站是否已更新到最新版）
+      程式版本：<b id="app-version">2026.10.19-sync</b>（用來確認網站是否已更新到最新版）
     </div>
 
     <div class="cm-section">
@@ -2168,7 +2168,7 @@ aside{background:rgba(255,255,255,0.7);border-right:1px solid var(--border)}
 
   // ── 初始化 ──
   window.onload = async () => {
-    console.log('%c資料申請教學平台 版本：2026.10.18-anim', 'color:#c8502a;font-weight:bold;font-size:14px');
+    console.log('%c資料申請教學平台 版本：2026.10.19-sync', 'color:#c8502a;font-weight:bold;font-size:14px');
     // 預設分類圖示
     catIcons = {
       '金融信用': '💳', '勞動保險': '🛡️', '稅務': '📊',
@@ -2176,12 +2176,23 @@ aside{background:rgba(255,255,255,0.7);border-right:1px solid var(--border)}
     };
 
     // 優先順序：1) localStorage  2) content.json  3) 預設資料
-    const hasStored = loadFromStorage();
-    if (!hasStored) {
-      const loaded = await loadFromContentJson();
-      if (!loaded) {
-        guides = [...defaultGuides];
-      }
+    const _isViewMode = new URLSearchParams(window.location.search).get('view') === '1';
+    if (_isViewMode) _skipSave = true; // 客戶看的唯讀頁：永遠讀 content.json，不留暫存
+    const remote = await fetchContentJson();
+    const stored = _isViewMode ? null : readStorage();
+    const remoteVer = remote && remote.exportedAt ? remote.exportedAt : null;
+    const storedVer = stored && stored.basedOn ? stored.basedOn : null;
+    if (remote && (!stored || !storedVer || (remoteVer && remoteVer > storedVer))) {
+      applyContentData(remote);
+      _contentVersion = remoteVer;
+      console.log('✅ 使用 GitHub 上較新的 content.json', remoteVer);
+      if (!_isViewMode) setTimeout(saveToStorage, 300);
+    } else if (stored) {
+      applyContentData(stored);
+      _contentVersion = storedVer;
+      console.log('✅ 使用本機暫存（以 content.json ' + storedVer + ' 為基礎）');
+    } else {
+      guides = [...defaultGuides];
     }
 
     guides.forEach(g => stepCounter[g.id] = g.steps.length);
@@ -4545,7 +4556,26 @@ aside{background:rgba(255,255,255,0.7);border-right:1px solid var(--border)}
   // ══════════════════════════════════════════════════
   const STORAGE_KEY = 'guideApp_v2';
 
+  let _contentVersion = null;
+  let _skipSave = false;
+  function readStorage() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      return (data.guides && data.guides.length > 0) ? data : null;
+    } catch(e) { return null; }
+  }
+  async function fetchContentJson() {
+    try {
+      const res = await fetch('./content.json?t=' + Date.now(), { cache: 'no-store' });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return (data.guides && data.guides.length > 0) ? data : null;
+    } catch(e) { return null; }
+  }
   function saveToStorage() {
+    if (_skipSave) return;
     try {
       const data = {
         guides: guides.map(g => ({
@@ -4560,6 +4590,7 @@ aside{background:rgba(255,255,255,0.7);border-right:1px solid var(--border)}
           links: g.links,
           contactPhone: g.contactPhone,
           address: g.address,
+          updatedDate: g.updatedDate,
           linksHidden: g.linksHidden,
           hasMobileTab: g.hasMobileTab,
           activeDeviceTab: g.activeDeviceTab,
@@ -4573,7 +4604,8 @@ aside{background:rgba(255,255,255,0.7);border-right:1px solid var(--border)}
         tipTitle: document.getElementById('tip-title')?.textContent,
         tipBody: document.getElementById('tip-body')?.textContent,
         tipHidden: document.getElementById('home-tip-card')?.style.display === 'none',
-        savedAt: new Date().toISOString()
+        savedAt: new Date().toISOString(),
+        basedOn: _contentVersion
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       showSaveStatus('✅ 已自動儲存');
@@ -4689,6 +4721,7 @@ aside{background:rgba(255,255,255,0.7);border-right:1px solid var(--border)}
         links: g.links,
         contactPhone: g.contactPhone,
         address: g.address,
+        updatedDate: g.updatedDate,
         linksHidden: g.linksHidden,
         hasMobileTab: g.hasMobileTab,
         activeDeviceTab: g.activeDeviceTab,
@@ -4715,6 +4748,9 @@ aside{background:rgba(255,255,255,0.7);border-right:1px solid var(--border)}
   // 清除 localStorage（讓下次重新從 content.json 讀取）
   function clearLocalAndReload() {
     if (!confirm('清除本機暫存後，將重新從 content.json 讀取內容，確定嗎？')) return;
+    _skipSave = true;
+    window.removeEventListener('beforeunload', saveToStorage);
+    clearTimeout(_saveTimer);
     localStorage.removeItem(STORAGE_KEY);
     location.reload();
   }
