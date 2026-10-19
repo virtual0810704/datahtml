@@ -1636,6 +1636,111 @@
   .footer-sep { color: rgba(255,255,255,0.25); }
   .footer-copy { color: rgba(255,255,255,0.45); }
 </style>
+<style id="theme-apple">
+/* ===== Apple 風格主題（覆寫層）：刪除整個 <style id="theme-apple"> 即可恢復原本外觀 ===== */
+:root{
+  --ink:#1d1d1f; --ink-light:#6e6e73;
+  --paper:#f5f5f7; --paper-warm:#f5f5f7;
+  --accent:#0071e3; --accent-light:#cce1fa; --accent-pale:#e8f1fc;
+  --gold:#ff9f0a; --gold-light:#fff5e6;
+  --border:#e5e5ea; --border-strong:#d2d2d7;
+  --success:#248a3d; --success-light:#e6f6ea;
+  --blue:#0071e3; --blue-light:#e8f1fc;
+  --step-line:#e5e5ea;
+  --shadow:0 2px 14px rgba(0,0,0,0.06);
+  --shadow-lg:0 12px 40px rgba(0,0,0,0.12);
+  --apple-font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+}
+body{font-family:var(--apple-font);background:var(--paper);-webkit-font-smoothing:antialiased}
+.logo,.page-title,.modal h3,.footer-brand,.home-main-title,h2[style*="Noto Serif"]{font-family:var(--apple-font)!important;letter-spacing:-0.01em}
+.page-title{letter-spacing:-0.02em}
+
+/* 頁首：白色毛玻璃 */
+header{background:rgba(255,255,255,0.78);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);color:var(--ink);box-shadow:none;border-bottom:1px solid rgba(0,0,0,0.08)}
+.logo{color:var(--ink)}
+.logo-icon{border-radius:9px;color:#fff}
+.header-clock{color:var(--ink-light)}
+nav a{color:var(--ink-light)}
+nav a:hover{color:var(--ink)}
+.btn-add{border-radius:999px;font-weight:600}
+.btn-add:hover{background:#0077ed}
+.btn-header-tool{background:#f5f5f7;border:1px solid var(--border);color:var(--ink);border-radius:999px}
+.btn-header-tool:hover{background:#e8e8ed;color:var(--ink)}
+
+/* 側邊欄：膠囊式選取 */
+aside{background:rgba(255,255,255,0.7);border-right:1px solid var(--border)}
+.sidebar-item{border-left:0;margin:1px 10px;padding:0.5rem 0.9rem;border-radius:10px}
+.sidebar-item.active{background:var(--accent-pale);color:var(--accent);font-weight:600}
+.search-bar{border-radius:10px;border-color:transparent;background-color:#ececf0}
+.search-bar:focus{border-color:var(--accent);background-color:#fff;box-shadow:0 0 0 3px rgba(0,113,227,0.15)}
+
+/* 按鈕：膠囊 */
+.btn-edit,.btn-toolbar,.btn-save,.btn-undo,.btn-redo,.btn-cancel,.btn-confirm,.btn-cm-primary,.btn-cm-secondary,.btn-table,.btn-media,.device-tab-btn,.btn-device-toggle{border-radius:999px!important}
+.btn-edit:hover,.btn-toolbar:hover{border-color:var(--accent);color:var(--accent)}
+
+/* 步驟：白色大圓角卡片 */
+.step-block{background:#fff;border-radius:18px;padding:1.25rem 1.5rem;margin-bottom:1rem;box-shadow:var(--shadow);gap:1.1rem}
+.step-block::before{display:none}
+.step-number{background:var(--accent);width:36px;height:36px}
+.step-block.drag-over{border-radius:18px}
+.add-step-btn{border-radius:14px}
+
+/* 卡片與區塊 */
+.info-card{border-radius:16px;border-left:0!important}
+.info-card.notice{background:var(--gold-light)}
+.info-card.tip{background:var(--blue-light)}
+.info-card.success{background:var(--success-light)}
+.editable-table{border-radius:14px;background:#fff}
+.editable-table th{background:#f5f5f7;color:var(--ink);font-weight:600;border-bottom:1px solid var(--border)}
+.faq-item{background:#fff;border-radius:14px;border-color:var(--border)}
+.info-links-card{border-radius:16px}
+.image-upload-zone,.media-block,.video-card{border-radius:14px}
+.tag{border-radius:999px}
+
+/* 對話框 */
+.modal{border-radius:22px}
+.form-input,.form-select{border-radius:10px}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,113,227,0.15)}
+.font-toolbar{border-radius:14px;background:rgba(29,29,31,0.92);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
+.toast{border-radius:999px}
+
+/* 底部 */
+.disclaimer-bar{background:#f5f5f7;color:var(--ink-light);border-top:1px solid var(--border)}
+.site-footer{background:#f5f5f7;color:var(--ink-light);border-top:1px solid var(--border)}
+.footer-brand{color:var(--ink)}
+.footer-sep{color:#c7c7cc}
+.footer-copy{color:var(--ink-light)}
+
+/* 手機 */
+@media (max-width:768px){
+  .mobile-nav-bar{background:rgba(255,255,255,0.85);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px)}
+  .mobile-nav-toggle{border-radius:999px}
+  .mobile-drawer{background:#fff;border-radius:0 0 18px 18px}
+  .drawer-item{border-radius:10px}
+  .step-block{padding:1rem;border-radius:16px}
+}
+@media print{header{background:#fff}.step-block{box-shadow:none;border:1px solid var(--border)}}
+</style>
+
+<style id="nav-animations">
+/* ===== 切換動畫（刪除此區塊與 showSection 內動畫即可停用） ===== */
+#nav-progress{position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),#5ac8fa);transform:scaleX(0);transform-origin:left;z-index:1000;pointer-events:none;opacity:0}
+#nav-progress.run{animation:navProgress .6s cubic-bezier(.22,1,.36,1) forwards}
+@keyframes navProgress{0%{transform:scaleX(0);opacity:1}60%{transform:scaleX(.85);opacity:1}100%{transform:scaleX(1);opacity:0}}
+.stagger-in{animation:staggerIn .5s cubic-bezier(.22,1,.36,1) both}
+@keyframes staggerIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.nav-pop{animation:navPop .38s cubic-bezier(.34,1.56,.64,1)}
+@keyframes navPop{0%{transform:scale(.94)}60%{transform:scale(1.03)}100%{transform:scale(1)}}
+.label-swap{animation:labelSwap .35s cubic-bezier(.22,1,.36,1)}
+@keyframes labelSwap{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.tab-in-left{animation:tabInL .38s cubic-bezier(.22,1,.36,1)}
+.tab-in-right{animation:tabInR .38s cubic-bezier(.22,1,.36,1)}
+@keyframes tabInL{from{opacity:0;transform:translateX(-36px)}to{opacity:1;transform:none}}
+@keyframes tabInR{from{opacity:0;transform:translateX(36px)}to{opacity:1;transform:none}}
+.sidebar-item,.drawer-item{transition:background .2s ease,color .2s ease}
+@media (max-width:768px){@keyframes staggerIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}}
+@media (prefers-reduced-motion:reduce){#nav-progress,.stagger-in,.nav-pop,.label-swap,.tab-in-left,.tab-in-right{animation:none!important}}
+</style>
 </head>
 <body>
 
@@ -1811,7 +1916,7 @@
   <div class="modal" style="max-width:480px">
     <h3>⚙️ 內容管理</h3>
     <div style="font-size:11px;color:var(--ink-light);background:var(--paper-warm);border-radius:6px;padding:5px 10px;margin-bottom:1rem;display:inline-block">
-      程式版本：<b id="app-version">2025.07.28-fix2</b>（用來確認網站是否已更新到最新版）
+      程式版本：<b id="app-version">2026.10.18-anim</b>（用來確認網站是否已更新到最新版）
     </div>
 
     <div class="cm-section">
@@ -2063,7 +2168,7 @@
 
   // ── 初始化 ──
   window.onload = async () => {
-    console.log('%c資料申請教學平台 版本：2025.07.28-fix2', 'color:#c8502a;font-weight:bold;font-size:14px');
+    console.log('%c資料申請教學平台 版本：2026.10.18-anim', 'color:#c8502a;font-weight:bold;font-size:14px');
     // 預設分類圖示
     catIcons = {
       '金融信用': '💳', '勞動保險': '🛡️', '稅務': '📊',
@@ -2099,24 +2204,76 @@
     window.addEventListener('beforeunload', saveToStorage);
   };
 
+  // ── 切換動畫輔助 ──
+  function replayAnim(el, cls) {
+    if (!el) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    el.classList.remove(cls);
+    if (el.id !== 'nav-progress' && el.getClientRects().length === 0) return; // 隱藏中的元素不播放
+    void el.offsetWidth;
+    el.classList.add(cls);
+    const done = () => { el.classList.remove(cls); el.removeEventListener('animationend', done); };
+    el.addEventListener('animationend', done);
+  }
+  function runNavProgress() {
+    let bar = document.getElementById('nav-progress');
+    if (!bar) { bar = document.createElement('div'); bar.id = 'nav-progress'; document.body.appendChild(bar); }
+    replayAnim(bar, 'run');
+  }
+  function staggerChildren(root) {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let items;
+    if (root.id === 'home-view') {
+      items = Array.from(root.querySelectorAll('.page-header, #guide-cards > *'));
+    } else {
+      items = Array.from(root.querySelectorAll('.page-header, .page-actions, .info-card, .device-tab-header, .step-block, .add-step-btn, .table-section, .info-links-card, .faq-section'));
+    }
+    items = items.filter(el => el.offsetParent !== null).slice(0, 12);
+    items.forEach((el, i) => {
+      el.style.animationDelay = (60 + i * 45) + 'ms';
+      el.classList.remove('stagger-in');
+      void el.offsetWidth;
+      el.classList.add('stagger-in');
+      const done = () => { el.classList.remove('stagger-in'); el.style.animationDelay = ''; el.removeEventListener('animationend', done); };
+      el.addEventListener('animationend', done);
+    });
+  }
+
   function showSection(mode, id) {
     const container = document.getElementById('guides-container');
     const homeView = document.getElementById('home-view');
 
-    // 先淡出目前頁面
+    // ══ 切換動畫（方向感：往後的教學從右滑入，往前／回首頁從左滑入） ══
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isMobileW = window.innerWidth <= 768;
+    const SHIFT = isMobileW ? 36 : 48;
+    const order = guides.map(g => g.id);
+    const activeNow = container.querySelector('.guide-page.active');
+    const fromIdx = (homeView.style.display !== 'none' || !activeNow) ? -1 : order.indexOf(activeNow.id);
+    const toIdx = (mode === 'guide' && id) ? order.indexOf(id) : -1;
+    const dir = toIdx >= fromIdx ? 1 : -1;
+    const firstRun = !window._navAnimReady;
+    window._navAnimReady = true;
+    if (!firstRun && !reduceMotion) runNavProgress();
+
     const fadeOut = (el) => {
-      el.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
+      if (reduceMotion) { el.style.opacity = '0'; return; }
+      el.style.transition = 'opacity 0.18s ease-in, transform 0.18s ease-in';
       el.style.opacity = '0';
-      el.style.transform = 'translateY(6px)';
+      el.style.transform = `translateX(${-dir * SHIFT * 0.5}px) scale(0.985)`;
     };
     const fadeIn = (el) => {
-      el.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
+      if (reduceMotion) { el.style.transition = ''; el.style.opacity = '1'; el.style.transform = ''; return; }
+      el.style.transition = 'none';
       el.style.opacity = '0';
-      el.style.transform = 'translateY(10px)';
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        el.style.opacity = '1';
-        el.style.transform = 'translateY(0)';
-      }));
+      el.style.transform = `translateX(${dir * SHIFT}px)`;
+      void el.offsetWidth; // 強制重排，確保動畫從起點開始
+      el.style.transition = 'opacity 0.32s ease-out, transform 0.42s cubic-bezier(0.22,1,0.36,1)';
+      el.style.opacity = '1';
+      el.style.transform = 'translateX(0)';
+      clearTimeout(el._animClear);
+      el._animClear = setTimeout(() => { el.style.transform = ''; el.style.transition = ''; }, 460);
+      staggerChildren(el);
     };
 
     // 淡出目前可見內容
@@ -2139,7 +2296,7 @@
           fadeIn(page);
         }
         const sItem = document.querySelector(`.sidebar-item[data-id="${id}"]`);
-        if (sItem) sItem.classList.add('active');
+        if (sItem) { sItem.classList.add('active'); replayAnim(sItem, 'nav-pop'); }
       }
 
       // 捲回頁面頂部（桌機捲 main，手機捲 window）
@@ -2631,6 +2788,9 @@
       if (c) c.style.display = (d === device) ? '' : 'none';
       if (btn) btn.style.display = (d === device) ? 'flex' : 'none';
     });
+    const shown = document.getElementById(`steps-${guideId}-${device}`);
+    if (shown) replayAnim(shown, device === 'pc' ? 'tab-in-left' : 'tab-in-right');
+    if (clickedBtn) replayAnim(clickedBtn, 'nav-pop');
     autoSave();
   }
 
@@ -3961,7 +4121,10 @@
 
   function updateMobileLabel(title) {
     const label = document.getElementById('mobile-nav-label');
-    if (label) label.textContent = title ? '📄 ' + title : '📋 所有教學';
+    if (label) {
+      const next = title ? '📄 ' + title : '📋 所有教學';
+      if (label.textContent !== next) { label.textContent = next; replayAnim(label, 'label-swap'); }
+    }
   }
 
 
