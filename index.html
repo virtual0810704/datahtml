@@ -809,6 +809,19 @@
   }
   .font-toolbar button:hover { background: rgba(255,255,255,0.25); }
   .font-toolbar .tb-hint { color: rgba(255,255,255,0.4); font-size: 11px; }
+  /* 可拖曳工具列：預設放在畫面下方，不擋到上方的「上一步／儲存」按鈕 */
+  .font-toolbar { top: auto; bottom: 16px; touch-action: none; }
+  .font-toolbar.tb-moved { transform: none; }
+  .font-toolbar.font-toolbar { flex-wrap: nowrap; align-items: center; }
+  .font-toolbar .tb-body { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; flex: 1; min-width: 0; }
+  .font-toolbar.tb-collapsed .tb-body { display: none; }
+  .font-toolbar .tb-drag {
+    color: rgba(255,255,255,0.7); font-size: 18px; line-height: 1;
+    cursor: grab; padding: 4px 6px; border-radius: 6px; user-select: none;
+  }
+  .font-toolbar .tb-drag:hover { background: rgba(255,255,255,0.15); }
+  .font-toolbar.tb-dragging, .font-toolbar.tb-dragging .tb-drag { cursor: grabbing; opacity: 0.92; }
+  .font-toolbar .tb-collapse { font-weight: 700; }
 
   /* ── 內文超連結樣式 ── */
   .step-body a, .notice-body a, .faq-answer a, .step-title a, .faq-question-text a {
@@ -819,6 +832,95 @@
   }
   .step-body a:hover, .notice-body a:hover, .faq-answer a:hover,
   .step-title a:hover, .faq-question-text a:hover { text-decoration-style: solid; }
+
+
+  /* ══ 拖曳排序把手（圖片／影片、常見問題、表格列）══ */
+  .sort-grip {
+    display: none; align-items: center; justify-content: center;
+    width: 28px; height: 28px; flex: none; border-radius: 6px;
+    color: #5f6368; background: rgba(255,255,255,0.95);
+    cursor: grab; touch-action: none; user-select: none;
+  }
+  .sort-grip svg { width: 20px; height: 20px; pointer-events: none; }
+  .sort-grip:hover { background: #e8f0fe; color: #1a73e8; }
+  body.editing .sort-grip { display: inline-flex; }
+  body.view-only .sort-grip { display: none !important; }
+  .media-block > .sort-grip {
+    position: absolute; top: 8px; left: 8px; z-index: 11;
+    box-shadow: 0 1px 3px rgba(60,64,67,.3);
+  }
+  .faq-question-row > .sort-grip { margin-left: -8px; }
+  .row-del-cell .sort-grip { width: 24px; height: 24px; vertical-align: middle; }
+  body.editing .editable-table .row-del-cell { width: 64px !important; white-space: nowrap; }
+  .sort-dragging {
+    position: relative; z-index: 20;
+    outline: 2px solid #1a73e8; outline-offset: 2px;
+    box-shadow: 0 8px 24px rgba(26,115,232,.25) !important;
+    opacity: 0.95;
+  }
+  tr.sort-dragging td { background: #e8f0fe !important; }
+  body.sorting, body.sorting * { cursor: grabbing !important; user-select: none !important; }
+  /* ══ 文字工具列（仿 Google 協作平台）══ */
+  .gtb {
+    position: fixed; left: 0; top: 0; z-index: 300;
+    display: none; align-items: center; gap: 2px;
+    background: #fff; color: #3c4043;
+    border-radius: 8px; padding: 4px 6px;
+    box-shadow: 0 1px 3px rgba(60,64,67,.3), 0 4px 8px 3px rgba(60,64,67,.15);
+    font-family: 'Noto Sans TC', Roboto, Arial, sans-serif;
+    white-space: nowrap; max-width: calc(100vw - 16px);
+    overflow-x: auto; overflow-y: hidden; scrollbar-width: none;
+    user-select: none;
+  }
+  .gtb::-webkit-scrollbar { display: none; }
+  body.editing .gtb.gtb-show { display: flex; }
+  .gtb-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 2px;
+    height: 36px; min-width: 36px; padding: 0 6px; flex: none;
+    background: transparent; border: none; border-radius: 4px;
+    color: #3c4043; font: inherit; font-size: 14px; cursor: pointer;
+  }
+  .gtb-btn:hover { background: #f1f3f4; }
+  .gtb-btn.gtb-on { background: #e8f0fe; color: #1a73e8; }
+  .gtb-dd { justify-content: space-between; padding: 0 2px 0 10px; }
+  .gtb-dd-style { min-width: 112px; }
+  .gtb-dd-font { min-width: 140px; }
+  .gtb-dd-font span { max-width: 112px; overflow: hidden; text-overflow: ellipsis; }
+  .gtb-dd-size { min-width: 58px; }
+  .gtb-caret { color: #5f6368; flex: none; }
+  .gtb-ico-dd { padding: 0 0 0 6px; }
+  .gtb-sep { width: 1px; height: 24px; background: #dadce0; margin: 0 4px; flex: none; }
+  .gtb-color-a { display: inline-flex; flex-direction: column; align-items: center; font-size: 17px; font-weight: 600; line-height: 1; }
+  .gtb-color-bar { display: block; width: 18px; height: 4px; margin-top: 2px; background: #1a1a2e; border-radius: 1px; }
+  #tb-color-custom { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .gtb-pop {
+    position: fixed; z-index: 310; display: none;
+    background: #fff; border-radius: 6px; padding: 6px 0;
+    box-shadow: 0 2px 6px 2px rgba(60,64,67,.15), 0 1px 2px rgba(60,64,67,.3);
+    max-height: 60vh; overflow-y: auto; min-width: 160px;
+    font-family: 'Noto Sans TC', Roboto, Arial, sans-serif; color: #202124;
+  }
+  .gtb-pop.gtb-show { display: block; }
+  .gtb-item {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    padding: 8px 16px 8px 12px; background: none; border: none; text-align: left;
+    font: inherit; font-size: 14px; color: inherit; cursor: pointer; white-space: nowrap;
+  }
+  .gtb-item:hover { background: #f1f3f4; }
+  .gtb-item .gtb-check { width: 18px; color: #1a73e8; font-weight: 700; flex: none; text-align: center; }
+  .gtb-item-hint { margin-left: auto; padding-left: 16px; color: #80868b; font-size: 12px; }
+  .gtb-colors { display: grid; grid-template-columns: repeat(8, 22px); gap: 6px; padding: 8px 12px; }
+  .gtb-sw { width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(0,0,0,.15); cursor: pointer; padding: 0; }
+  .gtb-sw:hover { transform: scale(1.15); box-shadow: 0 0 0 2px #fff, 0 0 0 3px #1a73e8; }
+  .gtb-pop-title { padding: 6px 12px 2px; font-size: 12px; color: #5f6368; }
+  .gtb-emojis { display: grid; grid-template-columns: repeat(8, 34px); gap: 2px; padding: 6px 8px; }
+  .gtb-emo { width: 34px; height: 34px; font-size: 20px; border: none; background: none; border-radius: 4px; cursor: pointer; }
+  .gtb-emo:hover { background: #f1f3f4; }
+  @media (max-width: 768px) {
+    .gtb-btn { height: 40px; min-width: 40px; }
+    .gtb-dd-style { min-width: 96px; }
+    .gtb-dd-font { min-width: 110px; }
+  }
   .tb-color-swatches { display: flex; gap: 3px; }
   .tb-color-sw {
     width: 18px; height: 18px;
@@ -1028,7 +1130,8 @@
     .editable-table { font-size: 12px; }
     .editable-table th, .editable-table td { padding: 8px 10px; }
 
-    .font-toolbar { top: 52px; padding: 5px 8px; gap: 4px; }
+    .font-toolbar { padding: 5px 8px; gap: 4px; }
+    .font-toolbar .tb-body { gap: 4px; }
     .font-toolbar label { display: none; }
     .font-toolbar .tb-hint { display: none; }
   }
@@ -1380,6 +1483,10 @@
   .faq-answer { padding: 0 16px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.2s; font-size: 14px; color: var(--ink-light); background: var(--paper-warm); outline: none; line-height: 1.8; }
   .faq-item.open .faq-answer { max-height: 300px; padding: 12px 16px; }
   .faq-answer[contenteditable="true"] { cursor: text; }
+  /* 編輯模式：可編輯文字顯示「點選」手指游標，並閃爍提示可以點 */
+  body.editing [contenteditable="true"] { cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'><path d='M9 2.5a2 2 0 0 1 4 0V11l1-.1a2 2 0 0 1 3 .9 2 2 0 0 1 3 1 2 2 0 0 1 3 1.5V19c0 4-2.5 7-7 7h-2c-3 0-4.5-1.2-6-3.4L4.3 17a2 2 0 0 1 3.2-2.4L9 16.5z' fill='%23c8502a' stroke='white' stroke-width='1.6' stroke-linejoin='round'/></svg>") 10 2, pointer; caret-color: var(--accent); }
+  body.editing.cursor-blink [contenteditable="true"] { cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'><path d='M9 2.5a2 2 0 0 1 4 0V11l1-.1a2 2 0 0 1 3 .9 2 2 0 0 1 3 1 2 2 0 0 1 3 1.5V19c0 4-2.5 7-7 7h-2c-3 0-4.5-1.2-6-3.4L4.3 17a2 2 0 0 1 3.2-2.4L9 16.5z' fill='%23ffd2bf' stroke='%23c8502a' stroke-width='1.6' stroke-linejoin='round'/></svg>") 10 2, pointer; }
+  body.editing [contenteditable="true"]:focus { cursor: text; }
 
   /* ── 區塊標題列 ── */
   .section-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 10px; }
@@ -1777,33 +1884,30 @@ aside{background:rgba(255,255,255,0.7);border-right:1px solid var(--border)}
   <div class="drawer-inner" id="drawer-inner"></div>
 </div>
 
-<!-- 字體工具列 -->
-<div class="font-toolbar" id="font-toolbar">
-  <label>字體</label>
-  <select id="tb-font" onchange="applyFont(this.value)">
-    <option value="'Noto Sans TC',sans-serif">Noto Sans TC</option>
-    <option value="'Noto Serif TC',serif">Noto Serif TC（宋體）</option>
-    <option value="Arial,sans-serif">Arial</option>
-    <option value="Georgia,serif">Georgia</option>
-    <option value="'Courier New',monospace">Courier New</option>
-  </select>
-  <div class="tb-sep"></div>
-  <label>大小</label>
-  <input type="number" id="tb-size" min="10" max="60" value="15" onchange="applySize(this.value)" oninput="applySize(this.value)">
-  <span style="color:rgba(255,255,255,0.5);font-size:12px">px</span>
-  <div class="tb-sep"></div>
-  <button onclick="applyBold()" title="粗體"><b>B</b></button>
-  <button onclick="applyItalic()" title="斜體"><i>I</i></button>
-  <div class="tb-sep"></div>
-  <label>顏色</label>
-  <div class="tb-color-swatches" id="tb-color-swatches"></div>
-  <input type="color" id="tb-color-custom" value="#c8502a" onchange="applyColor(this.value)" title="自訂顏色">
-  <div class="tb-sep"></div>
-  <button onclick="applyLink()" title="加入超連結">🔗</button>
-  <button onclick="removeLink()" title="移除超連結">⛓️‍💥</button>
-  <div class="tb-sep"></div>
-  <span class="tb-hint">選取文字後套用樣式</span>
+<!-- 文字工具列（仿 Google 協作平台：點選文字時出現在該欄位上方） -->
+<div class="gtb" id="font-toolbar" role="toolbar" aria-label="文字格式">
+  <button class="gtb-btn gtb-dd gtb-dd-style" data-menu="style" title="段落樣式"><span id="gtb-style-label">一般文字</span><svg class="gtb-caret" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg></button>
+  <span class="gtb-sep"></span>
+  <button class="gtb-btn gtb-dd gtb-dd-font" data-menu="font" title="字型"><span id="gtb-font-label">預設字型</span><svg class="gtb-caret" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg></button>
+  <span class="gtb-sep"></span>
+  <button class="gtb-btn gtb-dd gtb-dd-size" data-menu="size" title="字型大小"><span id="gtb-size-label">15</span><svg class="gtb-caret" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg></button>
+  <span class="gtb-sep"></span>
+  <button class="gtb-btn gtb-ico" data-cmd="bold" title="粗體 (Ctrl+B)"><b style="font-size:18px">B</b></button>
+  <button class="gtb-btn gtb-ico" data-cmd="italic" title="斜體 (Ctrl+I)"><i style="font-size:18px;font-family:Georgia,serif">I</i></button>
+  <button class="gtb-btn gtb-ico" data-cmd="underline" title="底線 (Ctrl+U)"><u style="font-size:18px">U</u></button>
+  <button class="gtb-btn gtb-ico" data-menu="color" title="文字顏色"><span class="gtb-color-a">A<span class="gtb-color-bar" id="gtb-color-bar"></span></span></button>
+  <button class="gtb-btn gtb-ico" data-act="link" title="插入連結"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" fill="currentColor"/></svg></button>
+  <button class="gtb-btn gtb-ico" data-menu="emoji" title="插入表情符號"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" fill="currentColor"/></svg></button>
+  <span class="gtb-sep"></span>
+  <button class="gtb-btn gtb-ico gtb-ico-dd" data-menu="align" title="對齊"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M15 15H3v2h12v-2zm0-8H3v2h12V7zM3 13h18v-2H3v2zm0 8h18v-2H3v2zM3 3v2h18V3H3z" fill="currentColor"/></svg><svg class="gtb-caret" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg></button>
+  <button class="gtb-btn gtb-ico" data-cmd="insertOrderedList" title="編號清單"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2v1zm1-9h1V4H2v1h1v3zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2v1zm5-6v2h14V5H7zm0 14h14v-2H7v2zm0-6h14v-2H7v2z" fill="currentColor"/></svg></button>
+  <button class="gtb-btn gtb-ico" data-cmd="insertUnorderedList" title="項目符號清單"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.68-1.5 1.5s.68 1.5 1.5 1.5 1.5-.68 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z" fill="currentColor"/></svg></button>
+  <span class="gtb-sep"></span>
+  <button class="gtb-btn gtb-ico" data-act="clear" title="清除格式"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3.27 5L2 6.27l6.97 6.97L6.5 19h3l1.57-3.66L16.73 21 18 19.73 3.55 5.27 3.27 5zM6 5v.18L8.82 8h2.4l-.72 1.68 2.1 2.1L14.21 8H20V5H6z" fill="currentColor"/></svg></button>
+  <button class="gtb-btn gtb-ico" data-menu="more" title="更多"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" fill="currentColor"/></svg></button>
+  <input type="color" id="tb-color-custom" value="#c8502a" tabindex="-1" aria-hidden="true">
 </div>
+<div class="gtb-pop" id="gtb-pop" role="menu"></div>
 
 <div class="app">
   <!-- 側邊欄 -->
@@ -1916,7 +2020,7 @@ aside{background:rgba(255,255,255,0.7);border-right:1px solid var(--border)}
   <div class="modal" style="max-width:480px">
     <h3>⚙️ 內容管理</h3>
     <div style="font-size:11px;color:var(--ink-light);background:var(--paper-warm);border-radius:6px;padding:5px 10px;margin-bottom:1rem;display:inline-block">
-      程式版本：<b id="app-version">2026.10.19-sync</b>（用來確認網站是否已更新到最新版）
+      程式版本：<b id="app-version">2026.10.20-sort</b>（用來確認網站是否已更新到最新版）
     </div>
 
     <div class="cm-section">
@@ -2168,7 +2272,7 @@ aside{background:rgba(255,255,255,0.7);border-right:1px solid var(--border)}
 
   // ── 初始化 ──
   window.onload = async () => {
-    console.log('%c資料申請教學平台 版本：2026.10.19-sync', 'color:#c8502a;font-weight:bold;font-size:14px');
+    console.log('%c資料申請教學平台 版本：2026.10.20-sort', 'color:#c8502a;font-weight:bold;font-size:14px');
     // 預設分類圖示
     catIcons = {
       '金融信用': '💳', '勞動保險': '🛡️', '稅務': '📊',
@@ -2213,7 +2317,524 @@ aside{background:rgba(255,255,255,0.7);border-right:1px solid var(--border)}
 
     // 監聽頁面關閉前自動儲存
     window.addEventListener('beforeunload', saveToStorage);
+    initGoogleToolbar();
   };
+
+
+  // ══════════════════════════════════════════════════
+  // ── 文字工具列（仿 Google 協作平台）──
+  // 點選可編輯文字時，工具列出現在該欄位正上方；
+  // 所有按鈕都不會搶走游標，所以選取的文字不會消失
+  // ══════════════════════════════════════════════════
+  const GTB_FONTS = [
+    ['Noto Sans TC', "'Noto Sans TC',sans-serif"],
+    ['Noto Serif TC（宋體）', "'Noto Serif TC',serif"],
+    ['Arial', 'Arial,sans-serif'],
+    ['Georgia', 'Georgia,serif'],
+    ['Courier New', "'Courier New',monospace"]
+  ];
+  const GTB_SIZES = [12, 14, 15, 16, 18, 20, 24, 28, 32, 40];
+  const GTB_STYLES = [
+    { key: 'title',    label: '標題',     size: 26, weight: 700, preview: 'font-size:22px;font-weight:700' },
+    { key: 'subtitle', label: '副標題',   size: 19, weight: 700, preview: 'font-size:17px;font-weight:700' },
+    { key: 'normal',   label: '一般文字', size: null, weight: null, preview: 'font-size:14px' }
+  ];
+  const GTB_COLORS = [
+    '#000000','#434343','#666666','#999999','#b7b7b7','#cccccc','#efefef','#ffffff',
+    '#c0392b','#e67e22','#f1c40f','#27ae60','#16a085','#3498db','#1d4e89','#8e44ad',
+    '#c8502a','#b8952a','#2d6a4f','#1a73e8','#6b3fa0','#d81b60','#1a1a2e','#5f6368'
+  ];
+  const GTB_EMOJIS = ['✅','❌','⚠️','❗','❓','💡','📌','👉','👆','👇','⭐','🔥','📱','💻','📄','📎',
+                      '📷','💬','📞','🏦','🏤','🆔','💳','🔒','①','②','③','④','⑤','⑥','⑦','⑧',
+                      '☐','☑️','➡️','⬅️','⬆️','⬇️','🙂','👍'];
+
+  let _gtbTarget = null;       // 目前正在編輯的欄位
+  let _gtbMenu = null;         // 目前打開的下拉選單名稱
+  let _gtbMenuBtn = null;
+
+  function gtbEditableFrom(node) {
+    const el = node && (node.nodeType === 3 ? node.parentElement : node);
+    if (!el || !el.closest) return null;
+    const ed = el.closest('[contenteditable="true"]');
+    if (!ed || !document.body.classList.contains('editing')) return null;
+    if (ed.closest('.gtb, .gtb-pop, .modal, .modal-bg')) return null;
+    // 取最外層的可編輯欄位
+    let root = ed;
+    while (root.parentElement && root.parentElement.closest('[contenteditable="true"]')) {
+      root = root.parentElement.closest('[contenteditable="true"]');
+    }
+    return root;
+  }
+
+  // 取得目前在可編輯欄位內的選取範圍；若焦點跑掉，用記住的範圍補回
+  function gtbSelection() {
+    let sel = window.getSelection();
+    if (sel && sel.rangeCount && gtbEditableFrom(sel.anchorNode)) return sel;
+    if (restoreSavedSelection()) return window.getSelection();
+    if (_gtbTarget && _gtbTarget.isConnected) {
+      _gtbTarget.focus();
+      sel = window.getSelection();
+      if (sel && sel.rangeCount && gtbEditableFrom(sel.anchorNode)) return sel;
+    }
+    return null;
+  }
+
+  function gtbAfterChange() {
+    if (typeof autoSave === 'function') autoSave();
+    gtbRefresh();
+    // 工具列的每個動作各算一步「上一步」，不跟前後的動作合併
+    setTimeout(() => { if (currentGuide) flushPendingHistory(currentGuide); }, 0);
+  }
+
+  // 把選取文字包上指定樣式（先用 fontSize=7 標記，再換成 span）
+  function gtbWrapSelection(styles) {
+    const sel = gtbSelection();
+    if (!sel) return false;
+    const root = gtbEditableFrom(sel.anchorNode);
+    if (sel.isCollapsed) {
+      // 沒有選取文字：套用到整個欄位（跟 Google 的「整段」行為一樣）
+      if (!root) return false;
+      Object.assign(root.style, styles);
+      return true;
+    }
+    document.execCommand('styleWithCSS', false, false);
+    document.execCommand('fontSize', false, '7');
+    const marks = root ? root.querySelectorAll('font[size="7"]') : [];
+    let last = null, firstSpan = null;
+    marks.forEach(f => {
+      const span = document.createElement('span');
+      Object.assign(span.style, styles);
+      if (f.getAttribute('color')) span.style.color = f.getAttribute('color');
+      if (f.getAttribute('face')) span.style.fontFamily = f.getAttribute('face');
+      while (f.firstChild) span.appendChild(f.firstChild);
+      f.replaceWith(span);
+      if (!firstSpan) firstSpan = span;
+      last = span;
+    });
+    // 選取範圍保留在剛套用的文字上，方便連續調整
+    if (last) {
+      const r = document.createRange();
+      r.setStart(firstSpan, 0);
+      r.setEnd(last, last.childNodes.length);
+      sel.removeAllRanges(); sel.addRange(r);
+      _savedRange = r.cloneRange();
+    }
+    return true;
+  }
+
+  function gtbExec(cmd, val) {
+    const sel = gtbSelection();
+    if (!sel) { showToast('請先點選要編輯的文字'); return; }
+    document.execCommand('styleWithCSS', false, false);
+    document.execCommand(cmd, false, val || null);
+    gtbAfterChange();
+  }
+
+  function gtbApplyStyle(key) {
+    const st = GTB_STYLES.find(x => x.key === key);
+    if (!st) return;
+    const sel = gtbSelection();
+    if (!sel) { showToast('請先點選要編輯的文字'); return; }
+    if (key === 'normal') {
+      const root = gtbEditableFrom(sel.anchorNode);
+      if (sel.isCollapsed) {
+        if (root) { root.style.fontSize = ''; root.style.fontWeight = ''; }
+      } else {
+        document.execCommand('removeFormat', false, null);
+      }
+    } else {
+      gtbWrapSelection({ fontSize: st.size + 'px', fontWeight: String(st.weight) });
+    }
+    gtbAfterChange();
+  }
+
+  function gtbApplySize(px) {
+    if (!gtbSelection()) { showToast('請先點選要編輯的文字'); return; }
+    gtbWrapSelection({ fontSize: px + 'px' });
+    gtbAfterChange();
+  }
+
+  function gtbApplyFont(family) {
+    const sel = gtbSelection();
+    if (!sel) { showToast('請先點選要編輯的文字'); return; }
+    if (sel.isCollapsed) {
+      const root = gtbEditableFrom(sel.anchorNode);
+      if (root) root.style.fontFamily = family;
+    } else {
+      document.execCommand('styleWithCSS', false, false);
+      document.execCommand('fontName', false, family);
+    }
+    gtbAfterChange();
+  }
+
+  function gtbApplyColor(color) {
+    const sel = gtbSelection();
+    if (!sel) { showToast('請先點選要編輯的文字'); return; }
+    if (sel.isCollapsed) {
+      const root = gtbEditableFrom(sel.anchorNode);
+      if (root) root.style.color = color;
+    } else {
+      document.execCommand('styleWithCSS', false, false);
+      document.execCommand('foreColor', false, color);
+    }
+    const bar = document.getElementById('gtb-color-bar');
+    if (bar) bar.style.background = color;
+    gtbAfterChange();
+  }
+
+  function gtbInsertText(t) {
+    if (!gtbSelection()) { showToast('請先點選要插入的位置'); return; }
+    document.execCommand('insertText', false, t);
+    gtbAfterChange();
+  }
+
+  function gtbLink() {
+    const sel = gtbSelection();
+    if (sel && !sel.isCollapsed) _savedRange = sel.getRangeAt(0).cloneRange();
+    applyLink();
+    gtbAfterChange();
+  }
+
+  function gtbClear() {
+    const sel = gtbSelection();
+    if (!sel) { showToast('請先點選要編輯的文字'); return; }
+    if (sel.isCollapsed) {
+      const root = gtbEditableFrom(sel.anchorNode);
+      if (root) { ['fontSize','fontWeight','fontFamily','color','fontStyle','textDecoration'].forEach(p => root.style[p] = ''); }
+    } else {
+      document.execCommand('removeFormat', false, null);
+      document.execCommand('unlink', false, null);
+    }
+    gtbAfterChange();
+    showToast('已清除格式');
+  }
+
+  // ── 下拉選單 ──
+  function gtbBuildMenu(name) {
+    const cur = gtbCurrentState();
+    const chk = (on) => `<span class="gtb-check">${on ? '✓' : ''}</span>`;
+    if (name === 'style') return GTB_STYLES.map(st =>
+      `<button class="gtb-item" data-style="${st.key}">${chk(cur.style === st.key)}<span style="${st.preview}">${st.label}</span></button>`).join('');
+    if (name === 'font') return GTB_FONTS.map(([label, fam]) =>
+      `<button class="gtb-item" data-font="${fam.replace(/"/g, '&quot;')}">${chk(cur.font === label.split('（')[0])}<span style="font-family:${fam.replace(/"/g, '&quot;')}">${label}</span></button>`).join('');
+    if (name === 'size') return GTB_SIZES.map(sz =>
+      `<button class="gtb-item" data-size="${sz}">${chk(cur.size === sz)}${sz}</button>`).join('');
+    if (name === 'color') return `<div class="gtb-pop-title">文字顏色</div><div class="gtb-colors">${GTB_COLORS.map(c =>
+      `<button class="gtb-sw" data-color="${c}" title="${c}" style="background:${c}"></button>`).join('')}</div>
+      <button class="gtb-item" data-act="custom-color"><span class="gtb-check">＋</span>自訂顏色…</button>`;
+    if (name === 'emoji') return `<div class="gtb-emojis">${GTB_EMOJIS.map(e =>
+      `<button class="gtb-emo" data-emoji="${e}">${e}</button>`).join('')}</div>`;
+    if (name === 'align') return [
+      ['justifyLeft', '靠左對齊', 'Ctrl+Shift+L'], ['justifyCenter', '置中', 'Ctrl+Shift+E'], ['justifyRight', '靠右對齊', 'Ctrl+Shift+R']
+    ].map(([cmd, label, key]) => `<button class="gtb-item" data-cmd="${cmd}">${chk(cur.align === cmd)}${label}<span class="gtb-item-hint">${key}</span></button>`).join('');
+    if (name === 'more') return `
+      <button class="gtb-item" data-cmd="strikeThrough">${chk(cur.strike)}<s>刪除線</s></button>
+      <button class="gtb-item" data-act="unlink"><span class="gtb-check"></span>移除連結</button>
+      <button class="gtb-item" data-act="undo"><span class="gtb-check"></span>復原<span class="gtb-item-hint">Ctrl+Z</span></button>
+      <button class="gtb-item" data-act="redo"><span class="gtb-check"></span>重做<span class="gtb-item-hint">Ctrl+Y</span></button>`;
+    return '';
+  }
+
+  function gtbOpenMenu(name, btn) {
+    const pop = document.getElementById('gtb-pop');
+    if (_gtbMenu === name) { gtbCloseMenu(); return; }
+    pop.innerHTML = gtbBuildMenu(name);
+    pop.classList.add('gtb-show');
+    _gtbMenu = name; _gtbMenuBtn = btn;
+    const r = btn.getBoundingClientRect();
+    const pw = pop.offsetWidth, ph = pop.offsetHeight;
+    let left = Math.min(Math.max(8, r.left), window.innerWidth - pw - 8);
+    let top = r.bottom + 4;
+    if (top + ph > window.innerHeight - 8) top = Math.max(8, r.top - ph - 4);
+    pop.style.left = left + 'px'; pop.style.top = top + 'px';
+  }
+
+  function gtbCloseMenu() {
+    const pop = document.getElementById('gtb-pop');
+    if (pop) pop.classList.remove('gtb-show');
+    _gtbMenu = null; _gtbMenuBtn = null;
+  }
+
+  // ── 讀取目前選取文字的格式，反映到工具列 ──
+  function gtbCurrentState() {
+    const sel = window.getSelection();
+    const st = { size: null, font: null, style: 'normal', align: 'justifyLeft', strike: false };
+    if (!sel || !sel.rangeCount) return st;
+    const node = sel.anchorNode;
+    const el = node && (node.nodeType === 3 ? node.parentElement : node);
+    if (!el || !gtbEditableFrom(el)) return st;
+    const cs = getComputedStyle(el);
+    st.size = Math.round(parseFloat(cs.fontSize));
+    const fam = (cs.fontFamily.split(',')[0] || '').replace(/["']/g, '').trim();
+    const known = GTB_FONTS.find(([label]) => label.split('（')[0] === fam);
+    st.font = known ? fam : '預設字型';
+    const w = parseInt(cs.fontWeight, 10);
+    if (st.size >= 24 && w >= 600) st.style = 'title';
+    else if (st.size >= 18 && w >= 600) st.style = 'subtitle';
+    try {
+      if (document.queryCommandState('justifyCenter')) st.align = 'justifyCenter';
+      else if (document.queryCommandState('justifyRight')) st.align = 'justifyRight';
+      st.strike = document.queryCommandState('strikeThrough');
+    } catch (e) {}
+    return st;
+  }
+
+  function gtbRefresh() {
+    const tb = document.getElementById('font-toolbar');
+    if (!tb || !tb.classList.contains('gtb-show')) return;
+    const st = gtbCurrentState();
+    if (st.size) document.getElementById('gtb-size-label').textContent = st.size;
+    if (st.font) document.getElementById('gtb-font-label').textContent = st.font;
+    document.getElementById('gtb-style-label').textContent = (GTB_STYLES.find(x => x.key === st.style) || GTB_STYLES[2]).label;
+    tb.querySelectorAll('[data-cmd]').forEach(b => {
+      let on = false;
+      try { on = document.queryCommandState(b.dataset.cmd); } catch (e) {}
+      b.classList.toggle('gtb-on', !!on);
+    });
+  }
+
+  // ── 工具列位置：貼在正在編輯的欄位上方，空間不夠就放下方 ──
+  function gtbPosition() {
+    const tb = document.getElementById('font-toolbar');
+    if (!tb || !_gtbTarget || !tb.classList.contains('gtb-show')) return;
+    const r = _gtbTarget.getBoundingClientRect();
+    const header = document.querySelector('header');
+    const minTop = (header ? header.getBoundingClientRect().bottom : 0) + 6;
+    const h = tb.offsetHeight, w = tb.offsetWidth;
+    let top = r.top - h - 8;
+    if (top < minTop) {
+      // 上方空間不夠：欄位頂端還看得到就放到欄位下方；欄位已捲到頂端列底下，就固定在頂端
+      top = (r.top >= minTop && r.bottom + 8 + h <= window.innerHeight) ? r.bottom + 8 : minTop;
+    }
+    top = Math.min(Math.max(minTop, top), window.innerHeight - h - 8);
+    let left = Math.min(Math.max(8, r.left), window.innerWidth - w - 8);
+    tb.style.top = top + 'px'; tb.style.left = left + 'px';
+    if (_gtbMenu && _gtbMenuBtn) {
+      const name = _gtbMenu; _gtbMenu = null; gtbOpenMenu(name, _gtbMenuBtn);
+    }
+  }
+
+  function gtbShow(target) {
+    const tb = document.getElementById('font-toolbar');
+    if (!tb) return;
+    _gtbTarget = target;
+    _activeEditEl = target;
+    tb.classList.add('gtb-show');
+    gtbPosition();
+    gtbRefresh();
+  }
+
+  function gtbHide() {
+    const tb = document.getElementById('font-toolbar');
+    if (tb) tb.classList.remove('gtb-show');
+    gtbCloseMenu();
+    _gtbTarget = null;
+  }
+
+  function initGoogleToolbar() {
+    const tb = document.getElementById('font-toolbar');
+    const pop = document.getElementById('gtb-pop');
+    if (!tb || !pop) return;
+
+    // 點工具列不搶焦點，選取的文字就不會消失
+    [tb, pop].forEach(el => el.addEventListener('mousedown', e => {
+      if (e.target.closest('input')) return;
+      e.preventDefault();
+    }));
+
+    tb.addEventListener('click', e => {
+      const btn = e.target.closest('.gtb-btn');
+      if (!btn) return;
+      if (btn.dataset.menu) { gtbOpenMenu(btn.dataset.menu, btn); return; }
+      gtbCloseMenu();
+      if (btn.dataset.cmd) gtbExec(btn.dataset.cmd);
+      else if (btn.dataset.act === 'link') gtbLink();
+      else if (btn.dataset.act === 'clear') gtbClear();
+    });
+
+    pop.addEventListener('click', e => {
+      const t = e.target.closest('button');
+      if (!t) return;
+      const d = t.dataset;
+      if (d.act === 'custom-color') {
+        const sel = gtbSelection();
+        if (sel && !sel.isCollapsed) _savedRange = sel.getRangeAt(0).cloneRange();
+        gtbCloseMenu();
+        document.getElementById('tb-color-custom').click();
+        return;
+      }
+      gtbCloseMenu();
+      if (d.style) gtbApplyStyle(d.style);
+      else if (d.font) gtbApplyFont(d.font);
+      else if (d.size) gtbApplySize(parseInt(d.size, 10));
+      else if (d.color) gtbApplyColor(d.color);
+      else if (d.emoji) gtbInsertText(d.emoji);
+      else if (d.cmd) gtbExec(d.cmd);
+      else if (d.act === 'unlink') { gtbExec('unlink'); }
+      else if (d.act === 'undo' && currentGuide) undoEdit(currentGuide);
+      else if (d.act === 'redo' && currentGuide) redoEdit(currentGuide);
+    });
+
+    document.getElementById('tb-color-custom').addEventListener('change', e => {
+      gtbApplyColor(e.target.value);
+    });
+
+    // 點到可編輯文字 → 顯示工具列
+    document.addEventListener('focusin', e => {
+      const ed = gtbEditableFrom(e.target);
+      if (ed) gtbShow(ed);
+    });
+    document.addEventListener('selectionchange', () => {
+      const sel = window.getSelection();
+      const ed = sel && sel.rangeCount ? gtbEditableFrom(sel.anchorNode) : null;
+      if (ed && ed !== _gtbTarget) gtbShow(ed);
+      else if (ed) gtbRefresh();
+    });
+    // 點到工具列、選單以外、也不是可編輯文字的地方 → 收起
+    document.addEventListener('mousedown', e => {
+      if (e.target.closest('.gtb, .gtb-pop')) return;
+      if (_gtbMenu) gtbCloseMenu();
+      if (!gtbEditableFrom(e.target)) setTimeout(() => {
+        const a = document.activeElement;
+        if (!gtbEditableFrom(a) && !(a && a.id === 'tb-color-custom')) gtbHide();
+      }, 0);
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') gtbCloseMenu(); });
+    window.addEventListener('scroll', () => requestAnimationFrame(gtbPosition), true);
+    window.addEventListener('resize', () => requestAnimationFrame(gtbPosition));
+    // 欄位內容變高（換行）時跟著調整位置
+    document.addEventListener('input', () => requestAnimationFrame(gtbPosition));
+    // 離開編輯模式就收起
+    new MutationObserver(() => {
+      if (!document.body.classList.contains('editing')) gtbHide();
+    }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  }
+
+
+  // ══════════════════════════════════════════════════
+  // ── 拖曳排序：圖片／影片、常見問題、表格列 ──
+  // 編輯模式下按住 ⠿ 把手上下拖曳，放開後順序自動存檔
+  // ══════════════════════════════════════════════════
+  const SORT_GRIP_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 4a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm0 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm-2 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM19 4a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm-2 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm2 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>';
+  let _sortActive = false;
+
+  function makeSortGrip(title) {
+    const g = document.createElement('span');
+    g.className = 'sort-grip';
+    g.title = title;
+    g.setAttribute('draggable', 'false');
+    g.innerHTML = SORT_GRIP_SVG;
+    return g;
+  }
+
+  function ensureSortGrips(root) {
+    if (!root) return;
+    root.querySelectorAll('.step-media > .media-block').forEach(mb => {
+      if (!mb.querySelector(':scope > .sort-grip')) mb.prepend(makeSortGrip('按住上下拖曳，調整圖片順序'));
+    });
+    root.querySelectorAll('.faq-item > .faq-question-row').forEach(row => {
+      if (!row.querySelector(':scope > .sort-grip')) row.prepend(makeSortGrip('按住上下拖曳，調整問題順序'));
+    });
+    root.querySelectorAll('.editable-table tbody tr').forEach(tr => {
+      const cell = tr.querySelector('.row-del-cell');
+      if (cell && !cell.querySelector('.sort-grip')) cell.prepend(makeSortGrip('按住上下拖曳，調整列的順序'));
+    });
+  }
+
+  // 新增圖片、問題、表格列時自動補上把手
+  new MutationObserver(() => {
+    if (!document.body.classList.contains('editing') || !currentGuide) return;
+    ensureSortGrips(document.getElementById(currentGuide));
+  }).observe(document.getElementById('guides-container') || document.body, { childList: true, subtree: true });
+
+  function sortItemSelector(item) {
+    if (item.matches('.media-block')) return ':scope > .media-block';
+    if (item.matches('.faq-item')) return ':scope > .faq-item';
+    return ':scope > tr';
+  }
+
+  document.addEventListener('pointerdown', (e) => {
+    const grip = e.target.closest && e.target.closest('.sort-grip');
+    if (!grip || !document.body.classList.contains('editing')) return;
+    const item = grip.closest('.media-block, .faq-item, tr');
+    if (!item || !item.parentElement) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const container = item.parentElement;
+    const sel = sortItemSelector(item);
+    const startOrder = [...container.querySelectorAll(sel)];
+    const stepBlock = item.closest('.step-block');
+    const prevDraggable = stepBlock ? stepBlock.draggable : null;
+    if (stepBlock) stepBlock.draggable = false;   // 拖把手時，暫停整個步驟的拖曳
+    _sortActive = true;
+    document.body.classList.add('sorting');
+    item.classList.add('sort-dragging');
+    const pid = e.pointerId;
+
+    let lastY = e.clientY, scrollTimer = null;
+
+    function reorder(y) {
+      const items = [...container.querySelectorAll(sel)].filter(el => el !== item);
+      let before = null;
+      for (const el of items) {
+        const r = el.getBoundingClientRect();
+        if (y < r.top + r.height / 2) { before = el; break; }
+      }
+      if (before) { if (item.nextElementSibling !== before) container.insertBefore(item, before); }
+      else {
+        const lastEl = items[items.length - 1];
+        if (lastEl && lastEl.nextElementSibling !== item) lastEl.after(item);
+      }
+    }
+
+    // 拖到畫面上下邊緣時自動捲動
+    function autoScroll() {
+      const edge = 70, speed = 14;
+      let dy = 0;
+      if (lastY < edge + 60) dy = -speed;
+      else if (lastY > window.innerHeight - edge) dy = speed;
+      if (dy) { window.scrollBy(0, dy); reorder(lastY); }
+      scrollTimer = requestAnimationFrame(autoScroll);
+    }
+    scrollTimer = requestAnimationFrame(autoScroll);
+
+    // 監聽整個頁面（項目在畫面上換位置時，瀏覽器會中斷對把手本身的追蹤）
+    function onMove(ev) { if (ev.pointerId !== pid) return; ev.preventDefault(); lastY = ev.clientY; reorder(ev.clientY); }
+    function onEnd(ev) {
+      if (ev && ev.pointerId !== pid) return;
+      document.removeEventListener('pointermove', onMove, true);
+      document.removeEventListener('pointerup', onEnd, true);
+      document.removeEventListener('pointercancel', onEnd, true);
+      cancelAnimationFrame(scrollTimer);
+      item.classList.remove('sort-dragging');
+      document.body.classList.remove('sorting');
+      if (stepBlock && prevDraggable !== null) stepBlock.draggable = prevDraggable;
+      setTimeout(() => { _sortActive = false; }, 0);
+      const endOrder = [...container.querySelectorAll(sel)];
+      const changed = endOrder.some((el, i) => el !== startOrder[i]);
+      if (changed && currentGuide) {
+        syncGuideFromDOM(currentGuide);
+        autoSave();
+        setTimeout(() => flushPendingHistory(currentGuide), 0);
+        showToast('↕️ 順序已更新');
+      }
+    }
+    document.addEventListener('pointermove', onMove, true);
+    document.addEventListener('pointerup', onEnd, true);
+    document.addEventListener('pointercancel', onEnd, true);
+  }, true);
+
+  // 把手上的點擊不要觸發底下的功能（展開問題、更換圖片、播放影片）
+  document.addEventListener('click', (e) => {
+    if (e.target.closest && e.target.closest('.sort-grip')) { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+
+  // ── 編輯模式游標閃爍（每 0.5 秒切換一次手指游標顏色）──
+  setInterval(() => {
+    if (document.body.classList.contains('editing')) document.body.classList.toggle('cursor-blink');
+    else document.body.classList.remove('cursor-blink');
+  }, 500);
 
   // ── 切換動畫輔助 ──
   function replayAnim(el, cls) {
@@ -3599,10 +4220,20 @@ aside{background:rgba(255,255,255,0.7);border-right:1px solid var(--border)}
     const page = document.getElementById(guideId);
     const state = _historyStore[guideId];
     if (!page || !state) return;
-    const observer = new MutationObserver(() => {
+    const observer = new MutationObserver((records) => {
       if (state.restoring) return; // 忽略復原造成的變動
+      // 修正：按鈕的可按/不可按狀態、編輯/拖曳開關這類變動不是內容編輯，不記錄。
+      // 原本「上一步」按鈕狀態一變就多記一筆，導致每次編輯都記兩筆、按上一步看起來沒反應
+      const IGNORE_ATTRS = ['disabled', 'contenteditable', 'draggable'];
+      const meaningful = records.some(r => {
+        if (r.type !== 'attributes') return true;
+        if (IGNORE_ATTRS.includes(r.attributeName)) return false;
+        if (r.target.closest && r.target.closest('.page-actions')) return false;
+        return true;
+      });
+      if (!meaningful) return;
       clearTimeout(state.timer);
-      state.timer = setTimeout(() => pushHistory(guideId), 600);
+      state.timer = setTimeout(() => { state.timer = null; pushHistory(guideId); }, 600);
     });
     observer.observe(page, { childList: true, subtree: true, characterData: true, attributes: true });
     state.observer = observer;
@@ -3613,12 +4244,12 @@ aside{background:rgba(255,255,255,0.7);border-right:1px solid var(--border)}
     const state = _historyStore[guideId];
     if (!page || !state) return;
     const snapshot = page.innerHTML;
+    // 畫面跟目前這一筆一樣（例如只是游標、焦點變化）就不記錄，也不清掉重做紀錄
+    if (snapshot === state.stack[state.index]) return;
     // 若目前不在堆疊最上層，先截斷之後的重做紀錄
     if (state.index < state.stack.length - 1) {
       state.stack = state.stack.slice(0, state.index + 1);
     }
-    // 避免與最後一筆重複
-    if (snapshot === state.stack[state.stack.length - 1]) return;
     state.stack.push(snapshot);
     // 限制最多 30 筆歷史，避免記憶體暴增
     if (state.stack.length > 30) state.stack.shift();
@@ -3630,24 +4261,44 @@ aside{background:rgba(255,255,255,0.7);border-right:1px solid var(--border)}
     const page = document.getElementById(guideId);
     const state = _historyStore[guideId];
     if (!page || !state) return;
+    // 修正：還原時先停止監聽並取消待記錄的計時器，
+    // 否則還原造成的畫面變動會被當成「新的編輯」記下來，把復原抵銷掉
+    clearTimeout(state.timer);
+    clearTimeout(_saveTimer);
+    if (state.observer) state.observer.disconnect();
     state.restoring = true;
     page.innerHTML = state.stack[state.index];
-    // 恢復編輯狀態相關的可編輯屬性（以防序列化遺漏）
     enableEditing(guideId, true);
-    document.querySelectorAll(`#${guideId} .step-block`).forEach(b => b.draggable = true);
-    requestAnimationFrame(() => { state.restoring = false; });
+    page.querySelectorAll('.step-block').forEach(b => b.draggable = true);
+    // 同步回資料並存檔（也在停止監聽期間完成，避免產生新紀錄）
+    syncGuideFromDOM(guideId);
+    saveToStorage();
+    // 以還原後的實際畫面作為這一筆紀錄，之後比對才不會誤判有變動
+    state.stack[state.index] = page.innerHTML;
+    if (state.observer) {
+      state.observer.takeRecords();
+      state.observer.observe(page, { childList: true, subtree: true, characterData: true, attributes: true });
+    }
+    state.restoring = false;
     updateUndoRedoButtons(guideId);
   }
 
-  function undoEdit(guideId) {
+  function flushPendingHistory(guideId) {
     const state = _historyStore[guideId];
-    if (!state || state.index <= 0) return;
+    if (state && state.timer) { clearTimeout(state.timer); state.timer = null; pushHistory(guideId); }
+  }
+
+  function undoEdit(guideId) {
+    flushPendingHistory(guideId);
+    const state = _historyStore[guideId];
+    if (!state || state.index <= 0) { showToast('已經沒有可以復原的步驟'); return; }
     state.index--;
     restoreSnapshot(guideId);
     showToast('↩ 已復原上一步');
   }
 
   function redoEdit(guideId) {
+    flushPendingHistory(guideId);
     const state = _historyStore[guideId];
     if (!state || state.index >= state.stack.length - 1) return;
     state.index++;
@@ -3683,6 +4334,7 @@ aside{background:rgba(255,255,255,0.7);border-right:1px solid var(--border)}
 
   function enableEditing(guideId, on) {
     const page = document.getElementById(guideId);
+    if (on && page) ensureSortGrips(page);
     page.querySelectorAll('.step-title, .step-body').forEach(el => el.contentEditable = on ? 'true' : 'false');
     // notice card
     page.querySelectorAll('.notice-title, .notice-body').forEach(el => el.contentEditable = on ? 'true' : 'false');
@@ -3843,7 +4495,7 @@ aside{background:rgba(255,255,255,0.7);border-right:1px solid var(--border)}
         _savedRange = sel.getRangeAt(0).cloneRange(); // 保存選取範圍，供稍後點擊工具列時還原
         // Reflect current computed style in toolbar
         const cs = window.getComputedStyle(el);
-        document.getElementById('tb-size').value = Math.round(parseFloat(cs.fontSize)) || 15;
+        const _tbs = document.getElementById('tb-size'); if (_tbs) _tbs.value = Math.round(parseFloat(cs.fontSize)) || 15;
       }
     }
   });
@@ -4794,6 +5446,7 @@ aside{background:rgba(255,255,255,0.7);border-right:1px solid var(--border)}
   let _dragSrcId = null;
 
   function stepDragStart(e, stepId) {
+    if (_sortActive) { e.preventDefault(); return; }
     _dragSrcId = stepId;
     e.dataTransfer.effectAllowed = 'move';
     setTimeout(() => { const el = document.getElementById(stepId); if (el) el.classList.add('dragging'); }, 0);
